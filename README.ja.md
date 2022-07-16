@@ -1,16 +1,14 @@
 # slp
 
-slp is a MySQL SlowLog Profiler.
+slp は MySQL の slowlog 解析ツールです。
 
-[日本語](./README.ja.md)
+このツールは [mysqldumpslow](https://dev.mysql.com/doc/refman/8.0/en/mysqldumpslow.html) に似ていますが, より多くのメトリクスを確認することができます。
 
-This tool is similar to [mysqldumpslow](https://dev.mysql.com/doc/refman/8.0/en/mysqldumpslow.html), but can check more metrics.
+## インストール
 
-## Installation
+https://github.com/tkuchiki/slp/releases から binary をダウンロードして配置してください。
 
-Download from https://github.com/tkuchiki/slp/releases
-
-## Usage
+# 使い方
 
 ```console
 $ slp --help
@@ -53,9 +51,11 @@ Flags:
 Use "slp [command] --help" for more information about a command.
 ```
 
+- `cat /path/to/slowlog | slp` のようにパイプでデータを送るか、後述する `-f, --file` オプションでファイルを指定して解析します
+
 ## print-output-options
 
-You can see the `--output` option values.
+`--output` オプションに指定できる値を確認できます。
 
 ```console
 $ slp print-output-options
@@ -129,9 +129,9 @@ p99-bytes-sent
 
 ## diff
 
-- Show the difference between the two profile results
-- `+` means an increasing `count`, `rows_sent`, `rows_examined`, `rows_affected`, `bytes_sent`, and `query_time`、`lock_time` are slower
-- `-` means a decreasing `count`, `rows_sent`, `rows_examined`, `rows_affected`, `bytes_sent`, and `query_time`、`lock_time` are faster
+- 2つの解析結果のダンプファイルを比較します
+- `+` は `count`、`rows_sent`、`rows_examined`、`rows_affected`、`bytes_sent` の増加、`query_time`、`lock_time` が遅くなったことを意味します
+- `-` は `count`、`rows_sent`、`rows_examined`、`rows_affected`、`bytes_sent`の減少、`query_time`、`lock_time` が速くなったことを意味します
 
 ```console
 $ cat /path/to/slow.log | slp --dump dumpfile1.yaml
@@ -170,23 +170,23 @@ $ slp diff dumpfile1.yaml dumpfile2.yaml --show-footers
 +---------+---------------------------------+----------------+-------------------+-------------------+-------------------+
 ```
 
-## Global options
+## グローバルオプション
 
-See: [Usage samples](./docs/usage_samples.md)
+sample は [Usage samples](./docs/usage_samples.md) を参照してください。
 
 - `-c, --config`
-    - The configuration file
+    - 各種オプションの設定ファイル
     - YAML
 - `--file=FILE` 
-    - The access log file
+    - 解析するファイルのパス
 - `-d, --dump=DUMP`
-    - File path for creating the profile results to a file
+    - 解析結果をファイルに書き出す際のファイルパス
 - `-l, --load=LOAD`
-    - File path to read the results of the profile created with the `-d, --dump` option
-    - Can expect it to work fast if you change the `--sort` and `--reverse` options for the same profile results
+    - `-d, --dump` オプションで書き出した解析結果を読み込む際のファイルパス
+    - 同じ解析結果に対して、`--sort` や `--reverse` のオプションを変更したい場合に高速に動作することが期待できます
 - `--sort=count`
-    - Output the results in sorted order
-    - Sort in ascending order
+    - 解析結果を表示する際にソートする条件
+    - 昇順でソートする 
     - `count`, `query`
     - `min-query-time`, `max-query-time`, `sum-query-time`, `avg-query-time`
     - `min-lock-time`, `max-lock-time`, `sum-lock-time`, `avg-lock-time`
@@ -194,110 +194,115 @@ See: [Usage samples](./docs/usage_samples.md)
     - `min-rows-examined`, `max-rows-examined`, `sum-rows-examined`, `avg-rows-examined`
     - `min-rows-affected`, `max-rows-affected`, `sum-rows-affected`, `avg-rows-affected`
     - `min-bytes-sent`, `max-bytes-sent`, `sum-bytes-sent`, `avg-bytes-sent`
-    - The default is `count`
-    - `pN(1~100)-<sort-key>` is modified by the values specified in `--percentiles`
-        - The `p` means percentile
+    - デフォルトは `count`
+    - `pN(1~100)-<sort-key>` は `--percentiles` で指定したパーセンタイル値によって変更されます
         - e.g. `p90-query-time`
-        - `count` and `query` does not support
+        - `count` と `query` はサポートしていません
 - `-r, --reverse`
-    - Sort in desecending order
+    - `--sort` オプションのソート結果を降順にします
 - `--format=table`
-    - Print the profile results in a table, Markdown, TSV, CSV and HTML format
-    - The default is table format
+    - 解析結果を テーブル、Markdown, TSV, CSV, HTML 形式で出力する
+    - デフォルトはテーブル形式
 - `--noheaders`
-    - Print no header when TSV and CSV format
+    - 解析結果を TSV, CSV で出力する際、header を表示しない
 - `--show-footers`
-    - Print the total number of each 1xx ~ 5xx in the footer of the table or Markdown format
+    - 解析結果を テーブル, Markdown で出力する際、footer として 1xx ~ 5xx の合計数を表示する
 - `--limit=5000`
-    - Maximum number of profile results to be printed
-    - This setting is to avoid using too much memory
-    - The default is 5000 lines
+    - 解析結果の表示上限数
+    - 解析結果の表示数が想定より多かった場合でも、リソースを使いすぎないための設定です
+    - デフォルトは 5000 行
 - `-o, --output="simple"`
-    - Specify the profile results to be print, separated by commas
+    - 出力する解析結果をカンマ区切りで指定する
     - `count`, `query`, `min-query-time`, `max-query-time`, `sum-query-time`, `avg-query-time`, `min-lock-time`, `max-lock-time`, `sum-lock-time`, `avg-lock-time`, `min-rows-sent`, `max-rows-sent`, `sum-rows-sent`, `avg-rows-sent`, `min-rows-examined`, `max-rows-examined`, `sum-rows-examined`, `avg-rows-examined`, `min-rows-affected`, `max-rows-affected`, `sum-rows-affected`, `avg-rows-affected`, `min-bytes-sent`, `max-bytes-sent`, `sum-bytes-sent`, `avg-bytes-sent`
-        - These outputs are the same for `all`
-        - `pN(1~100)-<sort-key>` is modified by the values specified in `--percentiles`
-    - The default is `simple`
-    - `standard` outputs `all` without `*-rows-affected` and `*-bytes-sent`
+        - `all` でも同様の出力を得られます
+        - `pN(1~100)-<sort-key>` は `--percentiles` で指定したパーセンタイル値によって変更されます
+    - デフォルトは `simple`
+        - `count`, `query`, `*-query-time`
+    - `standard` は `all` から `*-rows-affected` and `*-bytes-sent` を除いた出力を得られます
 - `-m, --matching-groups=PATTERN,...`
-    - Treat Queries that match regular expressions as the same Query
-    - Evaluate in the specified order. If matched, no further evaluation is performed.
+    - 正規表現にマッチした Query を同じ集計対象として扱います
+    - 指定した順序で正規表現を評価します。マッチした場合、それ以降の正規表現を評価しません。
 - `-f, --filters=FILTERS`
-    - Filters the targets for profile
-    - See [Filter](#filter)
+    - 集計対象をフィルタします
+    - 後述の[フィルタ](#フィルタ)参照
 - `--pos=POSITION_FILE`
-    - Stores the number of bytes to which the file has been read.
-    - If the number of bytes is stored in the POSITION_FILE, the data after that number of bytes will be profiled
-    - You can profile without truncating the file
-        - Also, it is expected to work fast because it seeks and skips files
+    - ファイルをどこまで読み込んだかバイト数を記録します
+    - POSITION_FILE にバイト数が書かれていた場合、そのバイト数以降のデータが解析対象になります
+    - ファイルを truncate することなく前回解析後からの増分だけを解析することができます
+        - また、ファイルを Seek して読み飛ばすので、高速に動作することが見込めます
 - `--nosave-pos`
-    - Data after the number of bytes specified by `--pos` is profiled, but the number of bytes reads is not stored
+    - `--pos` で指定したバイト数以降のデータを解析対象としますが、読み込んだバイト数の記録はしないようにします
 - `--percentiles`
-    - Specifies the percentile values to output, separated by commas
+    - 出力するパーセンタイル値をカンマ区切りで指定します
     - e.g. `90,95,99`
 - `-a`, `--noabstract`
-    - Do not abstract all numbers to N and strings to 'S'
+    - すべての数値と文字列を `N` と `'S'` に置き換えないようにします
 
-## Filter
+## フィルタ
 
-It is a function to include or exclude targets according to the conditions.
+集計対象を条件に応じて包含、除外する機能です。
 
-### Variables
+### 変数
 
-Filter on the following variables:.
+以下の変数に対してフィルタをかけることができます。
 
 - `Query`
     - SQL
 - `QueryTime`
-    - The time to acquire queries in seconds
+    - クエリの実行時間(秒)
 - `LockTime`
-    - The time to acquire locks in seconds
+    - ロックを取得した時間(秒)
 - `RowsSent`
-    - The number of rows sent to the client
+    - クライアントに送信された行数
 - `RowsExamined`
-    - The number of rows examined by the server layer
+    - サーバーレイヤーで走査された行数
 - `RowsAffected`
-    - The number of rows changed
+    - 変更があった行数
 - `BytesSent`
-    - The number of bytes sent to all clients
+    - すべてのクライアントに送信されたバイト数
 
-### Operators
+### 演算子
 
-The following operators are available:.
+以下の演算子を使用できます。
 
-- `+`, `-`, `*`, `/`, `%`, `**(pow)` 
+- `+`, `-`, `*`, `/`, `%`, `**(べき乗)` 
 - `==`, `!=`, `<`, `>`, `<=`, `>=`
 - `not`, `!`
 - `and`, `&&`
 - `or`, `||`
 - `matches`
+    - 正規表現(`PATTERN`)にマッチするか否か
     - e.g.
        - `Query matches "PATTERN"`
        - `not(Query matches "PATTERN")`
 - `contains`
+    - 文字列(`STRING`)を含むか否か
     - e.g.
         - `Query contains "STRING"`
         - `not(Query contains "STRING")`
 - `startsWith`
+    - 文字列に前方一致するか否か
     - e.g.
         - `Query startsWith "PREFIX"`
         - `not(Query startsWith "PREFIX")`
 - `endsWith`
+    - 文字列に後方一致するか否か
     - e.g.
         - `Query endsWith "SUFFIX"`
         - `not(Query endsWith "SUFFIX")`
 - `in`
+    - 配列の値を含むか否か
     - e.g.
         - `QueryTime in [0.1, 0.2]`
-        - `QueryTime not in [0.1, 0.2]`
+        - `Method not in [0.1, 0.2]`
 
-See: https://github.com/antonmedv/expr/blob/master/docs/Language-Definition.md  
+詳細は https://github.com/antonmedv/expr/blob/master/docs/Language-Definition.md を参照してください。
+        
+## 利用例
 
-## Usage samples
+[Usage samples](./docs/usage_samples.md) を参照してください。
 
-See: [Usage samples](./docs/usage_samples.md)
+## 寄付
 
-## Donation
-
-Donations are welcome as always!  
+寄付はいつでも歓迎します！    
 [:heart: Sponsor](https://github.com/sponsors/tkuchiki)

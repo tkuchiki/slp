@@ -1,0 +1,458 @@
+## Usage Samples
+
+### Basic
+
+```console
+$ cat example/slow.log | slp
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| COUNT |              QUERY              | MIN(QUERYTIME) | MAX(QUERYTIME) | SUM(QUERYTIME) | AVG(QUERYTIME) |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| 1     | DELETE FROM `t1` WHERE 'S' <    | 0.035678       | 0.035678       | 0.035678       | 0.035678       |
+|       | `c1_date`                       |                |                |                |                |
+| 1     | DELETE FROM `t2` WHERE 'S'      | 0.369618       | 0.369618       | 0.369618       | 0.369618       |
+|       | < `c1_date` OR `c2` NOT IN      |                |                |                |                |
+|       | (SELECT `c3` FROM `t3`)         |                |                |                |                |
+| 1     | DELETE FROM `t4` WHERE `c4`     | 7.148949       | 7.148949       | 7.148949       | 7.148949       |
+|       | NOT IN (SELECT `c1` FROM `t1`)  |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S')              |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S'),(N,'S','S')  |                |                |                |                |
+| 1     | SELECT * FROM `t5` WHERE        | 0.010753       | 0.010753       | 0.010753       | 0.010753       |
+|       | `c5_id` IN ('S','S','S')        |                |                |                |                |
+| 1     | SELECT `t1`.`id` FROM `t1`      | 0.020219       | 0.020219       | 0.020219       | 0.020219       |
+|       | JOIN `t2` ON `t2`.`t1_id` =     |                |                |                |                |
+|       | `t1`.`id` WHERE `t2`.`t1_id` =  |                |                |                |                |
+|       | 'S' ORDER BY `t2`.`t1_id`       |                |                |                |                |
+| 2     | UPDATE `t1` SET                 | 1.428614       | 3.504247       | 4.932861       | 2.466430       |
+|       | `c1_count`=(SELECT COUNT(N) AS  |                |                |                |                |
+|       | `cnt` FROM `t2` WHERE `c3_id`   |                |                |                |                |
+|       | = `t3`.`id`)                    |                |                |                |                |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+```
+
+## `--sort sum-query-time`
+
+```console
+$ cat example/slow.log | slp --sort sum-query-time
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| COUNT |              QUERY              | MIN(QUERYTIME) | MAX(QUERYTIME) | SUM(QUERYTIME) | AVG(QUERYTIME) |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S')              |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S'),(N,'S','S')  |                |                |                |                |
+| 1     | SELECT * FROM `t5` WHERE        | 0.010753       | 0.010753       | 0.010753       | 0.010753       |
+|       | `c5_id` IN ('S','S','S')        |                |                |                |                |
+| 1     | SELECT `t1`.`id` FROM `t1`      | 0.020219       | 0.020219       | 0.020219       | 0.020219       |
+|       | JOIN `t2` ON `t2`.`t1_id` =     |                |                |                |                |
+|       | `t1`.`id` WHERE `t2`.`t1_id` =  |                |                |                |                |
+|       | 'S' ORDER BY `t2`.`t1_id`       |                |                |                |                |
+| 1     | DELETE FROM `t1` WHERE 'S' <    | 0.035678       | 0.035678       | 0.035678       | 0.035678       |
+|       | `c1_date`                       |                |                |                |                |
+| 1     | DELETE FROM `t2` WHERE 'S'      | 0.369618       | 0.369618       | 0.369618       | 0.369618       |
+|       | < `c1_date` OR `c2` NOT IN      |                |                |                |                |
+|       | (SELECT `c3` FROM `t3`)         |                |                |                |                |
+| 2     | UPDATE `t1` SET                 | 1.428614       | 3.504247       | 4.932861       | 2.466430       |
+|       | `c1_count`=(SELECT COUNT(N) AS  |                |                |                |                |
+|       | `cnt` FROM `t2` WHERE `c3_id`   |                |                |                |                |
+|       | = `t3`.`id`)                    |                |                |                |                |
+| 1     | DELETE FROM `t4` WHERE `c4`     | 7.148949       | 7.148949       | 7.148949       | 7.148949       |
+|       | NOT IN (SELECT `c1` FROM `t1`)  |                |                |                |                |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+```
+
+## `--reverse`
+
+```console
+$ cat example/slow.log | slp --sort sum-query-time -r
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| COUNT |              QUERY              | MIN(QUERYTIME) | MAX(QUERYTIME) | SUM(QUERYTIME) | AVG(QUERYTIME) |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| 1     | DELETE FROM `t4` WHERE `c4`     | 7.148949       | 7.148949       | 7.148949       | 7.148949       |
+|       | NOT IN (SELECT `c1` FROM `t1`)  |                |                |                |                |
+| 2     | UPDATE `t1` SET                 | 1.428614       | 3.504247       | 4.932861       | 2.466430       |
+|       | `c1_count`=(SELECT COUNT(N) AS  |                |                |                |                |
+|       | `cnt` FROM `t2` WHERE `c3_id`   |                |                |                |                |
+|       | = `t3`.`id`)                    |                |                |                |                |
+| 1     | DELETE FROM `t2` WHERE 'S'      | 0.369618       | 0.369618       | 0.369618       | 0.369618       |
+|       | < `c1_date` OR `c2` NOT IN      |                |                |                |                |
+|       | (SELECT `c3` FROM `t3`)         |                |                |                |                |
+| 1     | DELETE FROM `t1` WHERE 'S' <    | 0.035678       | 0.035678       | 0.035678       | 0.035678       |
+|       | `c1_date`                       |                |                |                |                |
+| 1     | SELECT `t1`.`id` FROM `t1`      | 0.020219       | 0.020219       | 0.020219       | 0.020219       |
+|       | JOIN `t2` ON `t2`.`t1_id` =     |                |                |                |                |
+|       | `t1`.`id` WHERE `t2`.`t1_id` =  |                |                |                |                |
+|       | 'S' ORDER BY `t2`.`t1_id`       |                |                |                |                |
+| 1     | SELECT * FROM `t5` WHERE        | 0.010753       | 0.010753       | 0.010753       | 0.010753       |
+|       | `c5_id` IN ('S','S','S')        |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S')              |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S'),(N,'S','S')  |                |                |                |                |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+```
+
+## `--format md or markdown`
+
+```console
+$ cat example/slow.log | slp --format md
+| COUNT |              QUERY              | MIN(QUERYTIME) | MAX(QUERYTIME) | SUM(QUERYTIME) | AVG(QUERYTIME) |
+|-------|---------------------------------|----------------|----------------|----------------|----------------|
+| 1     | DELETE FROM `t1` WHERE 'S' <    | 0.035678       | 0.035678       | 0.035678       | 0.035678       |
+|       | `c1_date`                       |                |                |                |                |
+| 1     | DELETE FROM `t2` WHERE 'S'      | 0.369618       | 0.369618       | 0.369618       | 0.369618       |
+|       | < `c1_date` OR `c2` NOT IN      |                |                |                |                |
+|       | (SELECT `c3` FROM `t3`)         |                |                |                |                |
+| 1     | DELETE FROM `t4` WHERE `c4`     | 7.148949       | 7.148949       | 7.148949       | 7.148949       |
+|       | NOT IN (SELECT `c1` FROM `t1`)  |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S')              |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S'),(N,'S','S')  |                |                |                |                |
+| 1     | SELECT * FROM `t5` WHERE        | 0.010753       | 0.010753       | 0.010753       | 0.010753       |
+|       | `c5_id` IN ('S','S','S')        |                |                |                |                |
+| 1     | SELECT `t1`.`id` FROM `t1`      | 0.020219       | 0.020219       | 0.020219       | 0.020219       |
+|       | JOIN `t2` ON `t2`.`t1_id` =     |                |                |                |                |
+|       | `t1`.`id` WHERE `t2`.`t1_id` =  |                |                |                |                |
+|       | 'S' ORDER BY `t2`.`t1_id`       |                |                |                |                |
+| 2     | UPDATE `t1` SET                 | 1.428614       | 3.504247       | 4.932861       | 2.466430       |
+|       | `c1_count`=(SELECT COUNT(N) AS  |                |                |                |                |
+|       | `cnt` FROM `t2` WHERE `c3_id`   |                |                |                |                |
+|       | = `t3`.`id`)                    |                |                |                |                |
+```
+
+## `--format tsv`
+
+```console
+$ cat example/slow.log | slp --format tsv
+Count	Query	Min(QueryTime)	Max(QueryTime)	Sum(QueryTime)	Avg(QueryTime)
+1	DELETE FROM `t1` WHERE 'S' < `c1_date`	0.035678	0.035678	0.035678	0.035678
+1	DELETE FROM `t2` WHERE 'S' < `c1_date` OR `c2` NOT IN (SELECT `c3` FROM `t3`)	0.369618	0.369618	0.369618	0.369618
+1	DELETE FROM `t4` WHERE `c4` NOT IN (SELECT `c1` FROM `t1`)	7.148949	7.148949	7.148949	7.148949
+1	INSERT INTO `t2` (`c2_id`,`c2_string`,`c2_date`) VALUES (N,'S','S')	0.010498	0.010498	0.010498	0.010498
+1	INSERT INTO `t2` (`c2_id`,`c2_string`,`c2_date`) VALUES (N,'S','S'),(N,'S','S')	0.010498	0.010498	0.010498	0.010498
+1	SELECT * FROM `t5` WHERE `c5_id` IN ('S','S','S')	0.010753	0.010753	0.010753	0.010753
+1	SELECT `t1`.`id` FROM `t1` JOIN `t2` ON `t2`.`t1_id` = `t1`.`id` WHERE `t2`.`t1_id` = 'S' ORDER BY `t2`.`t1_id`	0.020219	0.020219	0.020219	0.020219
+2	UPDATE `t1` SET `c1_count`=(SELECT COUNT(N) AS `cnt` FROM `t2` WHERE `c3_id` = `t3`.`id`)	1.428614	3.504247	4.932861	2.466430
+```
+
+## `--format csv`
+
+```console
+$ cat example/slow.log | slp --format csv
+Count,Query,Min(QueryTime),Max(QueryTime),Sum(QueryTime),Avg(QueryTime)
+1,DELETE FROM `t1` WHERE 'S' < `c1_date`,0.035678,0.035678,0.035678,0.035678
+1,DELETE FROM `t2` WHERE 'S' < `c1_date` OR `c2` NOT IN (SELECT `c3` FROM `t3`),0.369618,0.369618,0.369618,0.369618
+1,DELETE FROM `t4` WHERE `c4` NOT IN (SELECT `c1` FROM `t1`),7.148949,7.148949,7.148949,7.148949
+1,INSERT INTO `t2` (`c2_id`,`c2_string`,`c2_date`) VALUES (N,'S','S'),0.010498,0.010498,0.010498,0.010498
+1,INSERT INTO `t2` (`c2_id`,`c2_string`,`c2_date`) VALUES (N,'S','S'),(N,'S','S'),0.010498,0.010498,0.010498,0.010498
+1,SELECT * FROM `t5` WHERE `c5_id` IN ('S','S','S'),0.010753,0.010753,0.010753,0.010753
+1,SELECT `t1`.`id` FROM `t1` JOIN `t2` ON `t2`.`t1_id` = `t1`.`id` WHERE `t2`.`t1_id` = 'S' ORDER BY `t2`.`t1_id`,0.020219,0.020219,0.020219,0.020219
+2,UPDATE `t1` SET `c1_count`=(SELECT COUNT(N) AS `cnt` FROM `t2` WHERE `c3_id` = `t3`.`id`),1.428614,3.504247,4.932861,2.466430
+```
+
+## `--noheaders`
+
+Only TSV, CSV
+
+```console
+$ cat example/slow.log | slp --format tsv --noheaders
+1,DELETE FROM `t1` WHERE 'S' < `c1_date`,0.035678,0.035678,0.035678,0.035678
+1,DELETE FROM `t2` WHERE 'S' < `c1_date` OR `c2` NOT IN (SELECT `c3` FROM `t3`),0.369618,0.369618,0.369618,0.369618
+1,DELETE FROM `t4` WHERE `c4` NOT IN (SELECT `c1` FROM `t1`),7.148949,7.148949,7.148949,7.148949
+1,INSERT INTO `t2` (`c2_id`,`c2_string`,`c2_date`) VALUES (N,'S','S'),0.010498,0.010498,0.010498,0.010498
+1,INSERT INTO `t2` (`c2_id`,`c2_string`,`c2_date`) VALUES (N,'S','S'),(N,'S','S'),0.010498,0.010498,0.010498,0.010498
+1,SELECT * FROM `t5` WHERE `c5_id` IN ('S','S','S'),0.010753,0.010753,0.010753,0.010753
+1,SELECT `t1`.`id` FROM `t1` JOIN `t2` ON `t2`.`t1_id` = `t1`.`id` WHERE `t2`.`t1_id` = 'S' ORDER BY `t2`.`t1_id`,0.020219,0.020219,0.020219,0.020219
+2,UPDATE `t1` SET `c1_count`=(SELECT COUNT(N) AS `cnt` FROM `t2` WHERE `c3_id` = `t3`.`id`),1.428614,3.504247,4.932861,2.466430
+```
+
+## `--limit N`
+
+```console
+$ cat example/slow.log | slp --limit 8
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| COUNT |              QUERY              | MIN(QUERYTIME) | MAX(QUERYTIME) | SUM(QUERYTIME) | AVG(QUERYTIME) |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| 1     | DELETE FROM `t1` WHERE 'S' <    | 0.035678       | 0.035678       | 0.035678       | 0.035678       |
+|       | `c1_date`                       |                |                |                |                |
+| 1     | DELETE FROM `t2` WHERE 'S'      | 0.369618       | 0.369618       | 0.369618       | 0.369618       |
+|       | < `c1_date` OR `c2` NOT IN      |                |                |                |                |
+|       | (SELECT `c3` FROM `t3`)         |                |                |                |                |
+| 1     | DELETE FROM `t4` WHERE `c4`     | 7.148949       | 7.148949       | 7.148949       | 7.148949       |
+|       | NOT IN (SELECT `c1` FROM `t1`)  |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S')              |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S'),(N,'S','S')  |                |                |                |                |
+| 1     | SELECT * FROM `t5` WHERE        | 0.010753       | 0.010753       | 0.010753       | 0.010753       |
+|       | `c5_id` IN ('S','S','S')        |                |                |                |                |
+| 1     | SELECT `t1`.`id` FROM `t1`      | 0.020219       | 0.020219       | 0.020219       | 0.020219       |
+|       | JOIN `t2` ON `t2`.`t1_id` =     |                |                |                |                |
+|       | `t1`.`id` WHERE `t2`.`t1_id` =  |                |                |                |                |
+|       | 'S' ORDER BY `t2`.`t1_id`       |                |                |                |                |
+| 2     | UPDATE `t1` SET                 | 1.428614       | 3.504247       | 4.932861       | 2.466430       |
+|       | `c1_count`=(SELECT COUNT(N) AS  |                |                |                |                |
+|       | `cnt` FROM `t2` WHERE `c3_id`   |                |                |                |                |
+|       | = `t3`.`id`)                    |                |                |                |                |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+
+$ cat example/slow.log | slp --limit 7
+2022/07/26 09:46:34 Too many Queries (7 or less)
+```
+
+## `-o count,query,avg-query-time,p99-query-time`
+
+```console
+$ cat example/slow.log | slp -o count,query,avg-query-time,p99-query-time --percentiles 99
++-------+---------------------------------+----------------+----------------+
+| COUNT |              QUERY              | AVG(QUERYTIME) | P99(QUERYTIME) |
++-------+---------------------------------+----------------+----------------+
+| 1     | DELETE FROM `t1` WHERE 'S' <    | 0.035678       | 0.035678       |
+|       | `c1_date`                       |                |                |
+| 1     | DELETE FROM `t2` WHERE 'S'      | 0.369618       | 0.369618       |
+|       | < `c1_date` OR `c2` NOT IN      |                |                |
+|       | (SELECT `c3` FROM `t3`)         |                |                |
+| 1     | DELETE FROM `t4` WHERE `c4`     | 7.148949       | 7.148949       |
+|       | NOT IN (SELECT `c1` FROM `t1`)  |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |
+|       | VALUES (N,'S','S')              |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |
+|       | VALUES (N,'S','S'),(N,'S','S')  |                |                |
+| 1     | SELECT * FROM `t5` WHERE        | 0.010753       | 0.010753       |
+|       | `c5_id` IN ('S','S','S')        |                |                |
+| 1     | SELECT `t1`.`id` FROM `t1`      | 0.020219       | 0.020219       |
+|       | JOIN `t2` ON `t2`.`t1_id` =     |                |                |
+|       | `t1`.`id` WHERE `t2`.`t1_id` =  |                |                |
+|       | 'S' ORDER BY `t2`.`t1_id`       |                |                |
+| 2     | UPDATE `t1` SET                 | 2.466430       | 3.504247       |
+|       | `c1_count`=(SELECT COUNT(N) AS  |                |                |
+|       | `cnt` FROM `t2` WHERE `c3_id`   |                |                |
+|       | = `t3`.`id`)                    |                |                |
++-------+---------------------------------+----------------+----------------+
+```
+
+## `--show-footers`
+
+```console
+$ cat example/slow.log | slp --show-footers
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| COUNT |              QUERY              | MIN(QUERYTIME) | MAX(QUERYTIME) | SUM(QUERYTIME) | AVG(QUERYTIME) |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| 1     | DELETE FROM `t1` WHERE 'S' <    | 0.035678       | 0.035678       | 0.035678       | 0.035678       |
+|       | `c1_date`                       |                |                |                |                |
+| 1     | DELETE FROM `t2` WHERE 'S'      | 0.369618       | 0.369618       | 0.369618       | 0.369618       |
+|       | < `c1_date` OR `c2` NOT IN      |                |                |                |                |
+|       | (SELECT `c3` FROM `t3`)         |                |                |                |                |
+| 1     | DELETE FROM `t4` WHERE `c4`     | 7.148949       | 7.148949       | 7.148949       | 7.148949       |
+|       | NOT IN (SELECT `c1` FROM `t1`)  |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S')              |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S'),(N,'S','S')  |                |                |                |                |
+| 1     | SELECT * FROM `t5` WHERE        | 0.010753       | 0.010753       | 0.010753       | 0.010753       |
+|       | `c5_id` IN ('S','S','S')        |                |                |                |                |
+| 1     | SELECT `t1`.`id` FROM `t1`      | 0.020219       | 0.020219       | 0.020219       | 0.020219       |
+|       | JOIN `t2` ON `t2`.`t1_id` =     |                |                |                |                |
+|       | `t1`.`id` WHERE `t2`.`t1_id` =  |                |                |                |                |
+|       | 'S' ORDER BY `t2`.`t1_id`       |                |                |                |                |
+| 2     | UPDATE `t1` SET                 | 1.428614       | 3.504247       | 4.932861       | 2.466430       |
+|       | `c1_count`=(SELECT COUNT(N) AS  |                |                |                |                |
+|       | `cnt` FROM `t2` WHERE `c3_id`   |                |                |                |                |
+|       | = `t3`.`id`)                    |                |                |                |                |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| 9     |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+```
+ 
+## `--pos /tmp/slp.pos`
+ 
+```console
+$ stat -c %s example/slow.log
+2395
+
+$ slp --file example/slow.log --pos /tmp/slp.pos
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| COUNT |              QUERY              | MIN(QUERYTIME) | MAX(QUERYTIME) | SUM(QUERYTIME) | AVG(QUERYTIME) |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| 1     | DELETE FROM `t1` WHERE 'S' <    | 0.035678       | 0.035678       | 0.035678       | 0.035678       |
+|       | `c1_date`                       |                |                |                |                |
+| 1     | DELETE FROM `t2` WHERE 'S'      | 0.369618       | 0.369618       | 0.369618       | 0.369618       |
+|       | < `c1_date` OR `c2` NOT IN      |                |                |                |                |
+|       | (SELECT `c3` FROM `t3`)         |                |                |                |                |
+| 1     | DELETE FROM `t4` WHERE `c4`     | 7.148949       | 7.148949       | 7.148949       | 7.148949       |
+|       | NOT IN (SELECT `c1` FROM `t1`)  |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S')              |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S'),(N,'S','S')  |                |                |                |                |
+| 1     | SELECT * FROM `t5` WHERE        | 0.010753       | 0.010753       | 0.010753       | 0.010753       |
+|       | `c5_id` IN ('S','S','S')        |                |                |                |                |
+| 1     | SELECT `t1`.`id` FROM `t1`      | 0.020219       | 0.020219       | 0.020219       | 0.020219       |
+|       | JOIN `t2` ON `t2`.`t1_id` =     |                |                |                |                |
+|       | `t1`.`id` WHERE `t2`.`t1_id` =  |                |                |                |                |
+|       | 'S' ORDER BY `t2`.`t1_id`       |                |                |                |                |
+| 2     | UPDATE `t1` SET                 | 1.428614       | 3.504247       | 4.932861       | 2.466430       |
+|       | `c1_count`=(SELECT COUNT(N) AS  |                |                |                |                |
+|       | `cnt` FROM `t2` WHERE `c3_id`   |                |                |                |                |
+|       | = `t3`.`id`)                    |                |                |                |                |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+
+$ cat /tmp/slp.pos
+2395
+
+$ cat << EOS >> example/slow.log
+# Time: 2022-07-20T00:31:55.988806Z
+# User@Host: root[root] @ localhost [127.0.0.1]  Id:     8
+# Query_time: 0.035678  Lock_time: 0.000002 Rows_sent: 0  Rows_examined: 30004
+SET timestamp=1658277115;
+DELETE FROM `t1` WHERE '2022-05-13 09:00:00.000' < `c1_date`
+EOS
+
+$ slp --file example/slow.log --pos /tmp/slp.pos
++-------+--------------------------------+----------------+----------------+----------------+----------------+
+| COUNT |             QUERY              | MIN(QUERYTIME) | MAX(QUERYTIME) | SUM(QUERYTIME) | AVG(QUERYTIME) |
++-------+--------------------------------+----------------+----------------+----------------+----------------+
+| 1     | DELETE FROM `t1` WHERE 'S' <   | 0.035678       | 0.035678       | 0.035678       | 0.035678       |
+|       | `c1_date`                      |                |                |                |                |
++-------+--------------------------------+----------------+----------------+----------------+----------------+
+
+$ cat /tmp/slp.pos
+2657
+
+$ stat -c %s example/slow.log
+2657
+```
+
+## `--nosave-pos`
+
+```console
+$ stat -c %s example/slow.log
+2395
+
+$ cat example/slow.log | slp --pos /tmp/slp.pos
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| COUNT |              QUERY              | MIN(QUERYTIME) | MAX(QUERYTIME) | SUM(QUERYTIME) | AVG(QUERYTIME) |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| 1     | DELETE FROM `t1` WHERE 'S' <    | 0.035678       | 0.035678       | 0.035678       | 0.035678       |
+|       | `c1_date`                       |                |                |                |                |
+| 1     | DELETE FROM `t2` WHERE 'S'      | 0.369618       | 0.369618       | 0.369618       | 0.369618       |
+|       | < `c1_date` OR `c2` NOT IN      |                |                |                |                |
+|       | (SELECT `c3` FROM `t3`)         |                |                |                |                |
+| 1     | DELETE FROM `t4` WHERE `c4`     | 7.148949       | 7.148949       | 7.148949       | 7.148949       |
+|       | NOT IN (SELECT `c1` FROM `t1`)  |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S')              |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S'),(N,'S','S')  |                |                |                |                |
+| 1     | SELECT * FROM `t5` WHERE        | 0.010753       | 0.010753       | 0.010753       | 0.010753       |
+|       | `c5_id` IN ('S','S','S')        |                |                |                |                |
+| 1     | SELECT `t1`.`id` FROM `t1`      | 0.020219       | 0.020219       | 0.020219       | 0.020219       |
+|       | JOIN `t2` ON `t2`.`t1_id` =     |                |                |                |                |
+|       | `t1`.`id` WHERE `t2`.`t1_id` =  |                |                |                |                |
+|       | 'S' ORDER BY `t2`.`t1_id`       |                |                |                |                |
+| 2     | UPDATE `t1` SET                 | 1.428614       | 3.504247       | 4.932861       | 2.466430       |
+|       | `c1_count`=(SELECT COUNT(N) AS  |                |                |                |                |
+|       | `cnt` FROM `t2` WHERE `c3_id`   |                |                |                |                |
+|       | = `t3`.`id`)                    |                |                |                |                |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+
+$ cat /tmp/slp.pos
+2395
+
+$ cat << EOS >> example/slow.log
+# Time: 2022-07-20T00:31:55.988806Z
+# User@Host: root[root] @ localhost [127.0.0.1]  Id:     8
+# Query_time: 0.035678  Lock_time: 0.000002 Rows_sent: 0  Rows_examined: 30004
+SET timestamp=1658277115;
+DELETE FROM `t1` WHERE '2022-05-13 09:00:00.000' < `c1_date`
+EOS
+
+$ slp --file example/slow.log --pos /tmp/slp.pos --nosave-pos
++-------+--------------------------------+----------------+----------------+----------------+----------------+
+| COUNT |             QUERY              | MIN(QUERYTIME) | MAX(QUERYTIME) | SUM(QUERYTIME) | AVG(QUERYTIME) |
++-------+--------------------------------+----------------+----------------+----------------+----------------+
+| 1     | DELETE FROM `t1` WHERE 'S' <   | 0.035678       | 0.035678       | 0.035678       | 0.035678       |
+|       | `c1_date`                      |                |                |                |                |
++-------+--------------------------------+----------------+----------------+----------------+----------------+
+
+$ cat /tmp/slp.pos
+2395
+```
+
+## `--dump /tmp/slp.dump / --load /tmp/slp.dump`
+
+```console
+$ cat example/slow.log | slp --dump /tmp/slp.dump
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| COUNT |              QUERY              | MIN(QUERYTIME) | MAX(QUERYTIME) | SUM(QUERYTIME) | AVG(QUERYTIME) |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| 1     | DELETE FROM `t2` WHERE 'S'      | 0.369618       | 0.369618       | 0.369618       | 0.369618       |
+|       | < `c1_date` OR `c2` NOT IN      |                |                |                |                |
+|       | (SELECT `c3` FROM `t3`)         |                |                |                |                |
+| 1     | DELETE FROM `t4` WHERE `c4`     | 7.148949       | 7.148949       | 7.148949       | 7.148949       |
+|       | NOT IN (SELECT `c1` FROM `t1`)  |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S')              |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S'),(N,'S','S')  |                |                |                |                |
+| 1     | SELECT * FROM `t5` WHERE        | 0.010753       | 0.010753       | 0.010753       | 0.010753       |
+|       | `c5_id` IN ('S','S','S')        |                |                |                |                |
+| 1     | SELECT `t1`.`id` FROM `t1`      | 0.020219       | 0.020219       | 0.020219       | 0.020219       |
+|       | JOIN `t2` ON `t2`.`t1_id` =     |                |                |                |                |
+|       | `t1`.`id` WHERE `t2`.`t1_id` =  |                |                |                |                |
+|       | 'S' ORDER BY `t2`.`t1_id`       |                |                |                |                |
+| 2     | UPDATE `t1` SET                 | 1.428614       | 3.504247       | 4.932861       | 2.466430       |
+|       | `c1_count`=(SELECT COUNT(N) AS  |                |                |                |                |
+|       | `cnt` FROM `t2` WHERE `c3_id`   |                |                |                |                |
+|       | = `t3`.`id`)                    |                |                |                |                |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+
+$ slp --load /tmp/alp.dump
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| COUNT |              QUERY              | MIN(QUERYTIME) | MAX(QUERYTIME) | SUM(QUERYTIME) | AVG(QUERYTIME) |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| 1     | DELETE FROM `t2` WHERE 'S'      | 0.369618       | 0.369618       | 0.369618       | 0.369618       |
+|       | < `c1_date` OR `c2` NOT IN      |                |                |                |                |
+|       | (SELECT `c3` FROM `t3`)         |                |                |                |                |
+| 1     | DELETE FROM `t4` WHERE `c4`     | 7.148949       | 7.148949       | 7.148949       | 7.148949       |
+|       | NOT IN (SELECT `c1` FROM `t1`)  |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S')              |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S'),(N,'S','S')  |                |                |                |                |
+| 1     | SELECT * FROM `t5` WHERE        | 0.010753       | 0.010753       | 0.010753       | 0.010753       |
+|       | `c5_id` IN ('S','S','S')        |                |                |                |                |
+| 1     | SELECT `t1`.`id` FROM `t1`      | 0.020219       | 0.020219       | 0.020219       | 0.020219       |
+|       | JOIN `t2` ON `t2`.`t1_id` =     |                |                |                |                |
+|       | `t1`.`id` WHERE `t2`.`t1_id` =  |                |                |                |                |
+|       | 'S' ORDER BY `t2`.`t1_id`       |                |                |                |                |
+| 2     | UPDATE `t1` SET                 | 1.428614       | 3.504247       | 4.932861       | 2.466430       |
+|       | `c1_count`=(SELECT COUNT(N) AS  |                |                |                |                |
+|       | `cnt` FROM `t2` WHERE `c3_id`   |                |                |                |                |
+|       | = `t3`.`id`)                    |                |                |                |                |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+```
