@@ -1,4 +1,4 @@
-package parser
+package sqlparser
 
 import (
 	mparser "github.com/pingcap/tidb/parser"

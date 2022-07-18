@@ -1,7 +1,6 @@
 package abstractor
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/pingcap/tidb/parser/ast"
@@ -14,9 +13,9 @@ type SQLAbstractor struct {
 	restoreFlags format.RestoreFlags
 }
 
-func NewSQLAbstractor() *SQLAbstractor {
+func NewSQLAbstractor(assembleWhereIn, assembleInsertValues bool) *SQLAbstractor {
 	return &SQLAbstractor{
-		v:            visitor.NewVisitor(),
+		v:            visitor.NewVisitor(assembleWhereIn, assembleInsertValues),
 		restoreFlags: format.RestoreNameBackQuotes | format.RestoreSpacesAroundBinaryOperation,
 	}
 }
@@ -31,7 +30,6 @@ func (a *SQLAbstractor) Abstract(rootNode *ast.StmtNode) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fmt.Println(sb.String())
 
-	return "", nil
+	return sb.String(), nil
 }

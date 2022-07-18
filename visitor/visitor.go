@@ -1,29 +1,37 @@
 package visitor
 
 import (
-	"github.com/k0kubun/pp"
 	"github.com/pingcap/tidb/parser/ast"
 	"github.com/pingcap/tidb/parser/test_driver"
 )
 
 type Visitor struct {
+	assembleWhereIn      bool
+	assembleInsertValues bool
 }
 
-func NewVisitor() *Visitor {
-	return &Visitor{}
+func NewVisitor(assembleWhereIn, assembleInsertValues bool) *Visitor {
+	return &Visitor{
+		assembleWhereIn:      assembleWhereIn,
+		assembleInsertValues: assembleInsertValues,
+	}
 }
 
 func (v *Visitor) Enter(in ast.Node) (ast.Node, bool) {
 	switch stmt := in.(type) {
-	case *ast.SelectStmt:
-		parseSelectStmt(stmt)
 	case *ast.InsertStmt:
-		pp.Println(stmt)
-		parseInsertStmt(stmt)
-	case *ast.UpdateStmt:
-		parseUpdateStmt(stmt)
-	case *ast.DeleteStmt:
-		parseDeleteStmt(stmt)
+		parseInsertStmt(stmt, v.assembleInsertValues)
+	case *test_driver.ValueExpr:
+		abstractValue(stmt)
+	case *ast.PatternInExpr:
+		for _, val := range stmt.List {
+			parseExpr(val)
+
+			if v.assembleWhereIn {
+				stmt.List = stmt.List[:1]
+				break
+			}
+		}
 	}
 	return in, false
 }
@@ -32,26 +40,14 @@ func (v *Visitor) Leave(in ast.Node) (ast.Node, bool) {
 	return in, true
 }
 
-func parseSelectStmt(in *ast.SelectStmt) {
-	if in.Where != nil {
-		parseExpr(in.Where)
-	}
-
-	if in.Having != nil {
-		parseExpr(in.Having.Expr)
-	}
-
-	if in.Limit != nil {
-		parseAndAbstractLimit(in.Limit)
-	}
-}
-
 func parseExpr(in ast.ExprNode) {
 	switch expr := in.(type) {
 	case *ast.BinaryOperationExpr:
 		switch l := expr.L.(type) {
 		case *ast.BinaryOperationExpr:
 			parseExpr(l)
+		case *test_driver.ValueExpr:
+			abstractValue(l)
 		}
 
 		switch r := expr.R.(type) {
@@ -79,17 +75,23 @@ func abstractValue(val *test_driver.ValueExpr) {
 	val.Type.SetCharset("")
 }
 
-func parseAndAbstractLimit(in *ast.Limit) {
-	in.Count.(*test_driver.ValueExpr).Datum = test_driver.NewStringDatum("N")
-	in.Count.(*test_driver.ValueExpr).Type.SetCharset("")
-}
+func parseInsertStmt(in *ast.InsertStmt, assemble bool) {
+	if !assemble {
+		return
+	}
 
-func parseInsertStmt(in *ast.InsertStmt) {
 	if in.Lists != nil {
 		for _, values := range in.Lists {
 			for _, val := range values {
 				parseExpr(val)
 			}
+			if assemble {
+				break
+			}
+		}
+
+		if assemble {
+			in.Lists = in.Lists[:1]
 		}
 	}
 
@@ -97,31 +99,5 @@ func parseInsertStmt(in *ast.InsertStmt) {
 		for _, assignment := range in.OnDuplicate {
 			parseExpr(assignment.Expr)
 		}
-	}
-}
-
-func parseUpdateStmt(in *ast.UpdateStmt) {
-	if in.List != nil {
-		for _, assignment := range in.List {
-			parseExpr(assignment.Expr)
-		}
-	}
-
-	if in.Where != nil {
-		parseExpr(in.Where)
-	}
-
-	if in.Limit != nil {
-		parseAndAbstractLimit(in.Limit)
-	}
-}
-
-func parseDeleteStmt(in *ast.DeleteStmt) {
-	if in.Where != nil {
-		parseExpr(in.Where)
-	}
-
-	if in.Limit != nil {
-		parseAndAbstractLimit(in.Limit)
 	}
 }

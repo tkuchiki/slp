@@ -1,0 +1,44 @@
+# User@Host: isucon[isucon] @ webapp-app-1.webapp_default [127.0.0.1]  Id:     8
+# Query_time: 0.035678  Lock_time: 0.000002 Rows_sent: 0  Rows_examined: 30004
+SET timestamp=1658277115;
+DELETE FROM `t1` WHERE '2022-05-13 09:00:00.000' < `c1_date`;
+# Time: 2022-07-20T00:31:55.988806Z
+# User@Host: isucon[isucon] @ webapp-app-1.webapp_default [127.0.0.1]  Id:     8
+# Query_time: 0.369618  Lock_time: 0.000002 Rows_sent: 0  Rows_examined: 258959
+SET timestamp=1658277115;
+DELETE FROM `t2` WHERE '2022-05-13 09:00:00.000' < `c1_date` OR `c2` NOT IN (SELECT `c3` FROM `t3`);
+# Time: 2022-07-20T00:32:03.138649Z
+# User@Host: root[root] @ localhost [127.0.0.1]  Id:     8
+# Query_time: 7.148949  Lock_time: 0.000004 Rows_sent: 0  Rows_examined: 20720537
+SET timestamp=1658277115;
+DELETE FROM `t4` WHERE `c4` NOT IN (SELECT `c1` FROM `t1`);
+# Time: 2022-07-20T00:32:08.879237Z
+# User@Host: root[root] @ localhost [127.0.0.1]  Id:     8
+# Query_time: 3.504247  Lock_time: 0.000003 Rows_sent: 0  Rows_examined: 10486804
+SET timestamp=1658277125;
+UPDATE `t1` SET `c1_count` = (SELECT COUNT(*) AS cnt FROM `t2` where `c3_id` = `t3`.`id`);
+# Time: 2022-07-20T00:32:10.309457Z
+# User@Host: root[root] @ localhost [127.0.0.1]  Id:     8
+# Query_time: 1.428614  Lock_time: 0.000002 Rows_sent: 0  Rows_examined: 3135871
+SET timestamp=1658277128;
+UPDATE `t1` SET `c1_count` = (SELECT COUNT(*) AS cnt FROM `t2` where `c3_id` = `t3`.`id`);
+# Time: 2022-07-20T00:32:19.097889Z
+# User@Host: root[root] @ localhost [127.0.0.1]  Id:     9
+# Query_time: 0.010498  Lock_time: 0.000000 Rows_sent: 0  Rows_examined: 0
+SET timestamp=1658277139;
+INSERT INTO t2 (`c2_id`, `c2_string`, `c2_date`) VALUES (123, 'abc', '2022-07-20 00:32:19.086200468');
+# Time: 2022-07-20T00:32:19.097889Z
+# User@Host: root[root] @ localhost [127.0.0.1]  Id:     9
+# Query_time: 0.010498  Lock_time: 0.000000 Rows_sent: 0  Rows_examined: 0
+SET timestamp=1658277139;
+INSERT INTO t2 (`c2_id`, `c2_string`, `c2_date`) VALUES (123, 'abc', '2022-07-20 00:32:19.086200468'),(456, 'def', '2022-07-21 00:32:19.086200468');
+# Time: 2022-07-20T00:32:21.685679Z
+# User@Host: root[root] @ localhost [127.0.0.1]  Id:    13
+# Query_time: 0.010753  Lock_time: 0.000001 Rows_sent: 67  Rows_examined: 67
+SET timestamp=1658277141;
+SELECT * FROM t5 WHERE `c5_id` IN ('id-123', 'id-456', 'id-789');
+# Time: 2022-07-20T00:32:22.089448Z
+# User@Host: root[root] @ localhost [127.0.0.1]  Id:    11
+# Query_time: 0.020219  Lock_time: 0.000001 Rows_sent: 58  Rows_examined: 174
+SET timestamp=1658277142;
+SELECT `t1`.`id` FROM `t1` JOIN `t2` ON `t2`.`t1_id` = `t1`.`id` WHERE `t2`.`t1_id` = 'id-123' ORDER BY t2.t1_id;

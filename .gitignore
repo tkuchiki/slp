@@ -13,4 +13,9 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
-slp
+/slp
+vendor
+dist
+cmd/slp/slp
+from.yaml
+to.yaml
