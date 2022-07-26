@@ -483,9 +483,11 @@ func (qs *QueryStat) StrStddevBytesSent() string {
 }
 
 func percentRank(n int, pi int) int {
-	if pi == 0 {
+	// fast path of check of pi
+	switch pi {
+	case 0:
 		return 0
-	} else if pi == 100 {
+	case 100:
 		return n - 1
 	}
 
