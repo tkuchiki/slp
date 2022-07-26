@@ -20,7 +20,9 @@ func NewVisitor(bundleWhereIn, bundleInsertValues bool) *Visitor {
 func (v *Visitor) Enter(in ast.Node) (ast.Node, bool) {
 	switch stmt := in.(type) {
 	case *ast.InsertStmt:
-		parseInsertStmt(stmt, v.bundleInsertValues)
+		if v.bundleInsertValues {
+			parseInsertStmt(stmt)
+		}
 	case *test_driver.ValueExpr:
 		abstractValue(stmt)
 	case *ast.PatternInExpr:
@@ -75,24 +77,15 @@ func abstractValue(val *test_driver.ValueExpr) {
 	val.Type.SetCharset("")
 }
 
-func parseInsertStmt(in *ast.InsertStmt, bundle bool) {
-	if !bundle {
-		return
-	}
-
+func parseInsertStmt(in *ast.InsertStmt) {
 	if in.Lists != nil {
 		for _, values := range in.Lists {
 			for _, val := range values {
 				parseExpr(val)
 			}
-			if bundle {
-				break
-			}
+			break
 		}
-
-		if bundle {
-			in.Lists = in.Lists[:1]
-		}
+		in.Lists = in.Lists[:1]
 	}
 
 	if in.OnDuplicate != nil {

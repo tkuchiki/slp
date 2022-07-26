@@ -38,10 +38,9 @@ func SplitCSV(val string) []string {
 		return []string{}
 	}
 
-	trimedStrs := make([]string, 0, len(strs))
-
-	for _, s := range strs {
-		trimedStrs = append(trimedStrs, strings.Trim(s, " "))
+	trimedStrs := make([]string, len(strs))
+	for i, s := range strs {
+		trimedStrs[i] = strings.Trim(s, " ")
 	}
 
 	return trimedStrs
@@ -65,7 +64,7 @@ func SplitCSVIntoInts(val string) ([]int, error) {
 
 	for _, i := range trimedInts {
 		if i < 1 && i > 100 {
-			return []int{}, fmt.Errorf(``)
+			return []int{}, fmt.Errorf(`percentiles allowed 0 to 100`)
 		}
 	}
 

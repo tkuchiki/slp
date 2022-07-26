@@ -13,8 +13,10 @@ func (hs *QueryStats) LoadStats(r io.Reader) error {
 	}
 
 	var stats []*QueryStat
-	err = yaml.Unmarshal(buf, &stats)
+	if err := yaml.Unmarshal(buf, &stats); err != nil {
+		return err
+	}
 	hs.stats = stats
 
-	return err
+	return nil
 }

@@ -1,6 +1,7 @@
 package stats
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"regexp"
@@ -8,7 +9,7 @@ import (
 	"sync"
 
 	mlog "github.com/percona/go-mysql/log"
-	"github.com/tkuchiki/slp/errors"
+	slperrors "github.com/tkuchiki/slp/errors"
 	"github.com/tkuchiki/slp/helper"
 	"github.com/tkuchiki/slp/options"
 )
@@ -16,7 +17,7 @@ import (
 type hints struct {
 	values map[string]int
 	len    int
-	mu     sync.RWMutex
+	mu     sync.Mutex
 }
 
 func newHints() *hints {
@@ -119,9 +120,11 @@ func (qs *QueryStats) InitFilter(options *options.Options) error {
 
 func (qs *QueryStats) DoFilter(qstat *mlog.Event) (bool, error) {
 	err := qs.filter.Do(qstat)
-	if err == errors.SkipReadLineErr {
-		return false, nil
-	} else if err != nil {
+	if err != nil {
+		if errors.Is(err, slperrors.SkipReadLineErr) {
+			return false, nil
+		}
+
 		return false, err
 	}
 
@@ -480,9 +483,11 @@ func (qs *QueryStat) StrStddevBytesSent() string {
 }
 
 func percentRank(n int, pi int) int {
-	if pi == 0 {
+	// fast path of check of pi
+	switch pi {
+	case 0:
 		return 0
-	} else if pi == 100 {
+	case 100:
 		return n - 1
 	}
 

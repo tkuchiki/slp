@@ -10,17 +10,25 @@ import (
 	"github.com/tkuchiki/slp/html"
 )
 
-var outputKeywords = map[string][]string{
-	"simple":   {"count", "query", "query-time"},
-	"standard": {"count", "query", "query-time", "lock-time", "rows-sent", "rows-examined"},
-	"all":      {"count", "query", "query-time", "lock-time", "rows-sent", "rows-examined", "rows-affected", "bytes-sent"},
+type keywordMode string
+
+const (
+	simpleMode   keywordMode = "simple"
+	standardMode keywordMode = "standard"
+	allMode      keywordMode = "all"
+)
+
+var outputKeywords = map[keywordMode][]string{
+	simpleMode:   {"count", "query", "query-time"},
+	standardMode: {"count", "query", "query-time", "lock-time", "rows-sent", "rows-examined"},
+	allMode:      {"count", "query", "query-time", "lock-time", "rows-sent", "rows-examined", "rows-affected", "bytes-sent"},
 }
 
 var statsKeyPrefixes = []string{"min", "max", "sum", "avg"}
 
 func OutputKeywords(percentiles []int) []string {
 	var s []string
-	for _, key := range outputKeywords["all"] {
+	for _, key := range outputKeywords[allMode] {
 		if key == "count" || key == "query" {
 			s = append(s, key)
 			continue
@@ -80,44 +88,46 @@ func defaultHeaders(percentiles []int, keys []string) []string {
 	return s
 }
 
-func headersMap(percentiles []int) map[string]string {
-	headers := map[string]string{
-		"count":             "Count",
-		"query":             "Query",
-		"min-query-time":    "Min(QueryTime)",
-		"max-query-time":    "Max(QueryTime)",
-		"sum-query-time":    "Sum(QueryTime)",
-		"avg-query-time":    "Avg(QueryTime)",
-		"min-lock-time":     "Min(LockTime)",
-		"max-lock-time":     "Max(LockTime)",
-		"sum-lock-time":     "Sum(LockTime)",
-		"avg-lock-time":     "Avg(LockTime)",
-		"min-rows-sent":     "Min(RowsSent)",
-		"max-rows-sent":     "Max(RowsSent)",
-		"sum-rows-sent":     "Sum(RowsSent)",
-		"avg-rows-sent":     "Avg(RowsSent)",
-		"min-rows-examined": "Min(RowsExamined)",
-		"max-rows-examined": "Max(RowsExamined)",
-		"sum-rows-examined": "Sum(RowsExamined)",
-		"avg-rows-examined": "Avg(RowsExamined)",
-		"min-rows-affected": "Min(RowsAffected)",
-		"max-rows-affected": "Max(RowsAffected)",
-		"sum-rows-affected": "Sum(RowsAffected)",
-		"avg-rows-affected": "Avg(RowsAffected)",
-		"min-bytes-sent":    "Min(BytesSent)",
-		"max-bytes-sent":    "Max(BytesSent)",
-		"sum-bytes-sent":    "Sum(BytesSent)",
-		"avg-bytes-sent":    "Avg(BytesSent)",
-	}
+var defalutHeaders = map[string]string{
+	"count":             "Count",
+	"query":             "Query",
+	"min-query-time":    "Min(QueryTime)",
+	"max-query-time":    "Max(QueryTime)",
+	"sum-query-time":    "Sum(QueryTime)",
+	"avg-query-time":    "Avg(QueryTime)",
+	"min-lock-time":     "Min(LockTime)",
+	"max-lock-time":     "Max(LockTime)",
+	"sum-lock-time":     "Sum(LockTime)",
+	"avg-lock-time":     "Avg(LockTime)",
+	"min-rows-sent":     "Min(RowsSent)",
+	"max-rows-sent":     "Max(RowsSent)",
+	"sum-rows-sent":     "Sum(RowsSent)",
+	"avg-rows-sent":     "Avg(RowsSent)",
+	"min-rows-examined": "Min(RowsExamined)",
+	"max-rows-examined": "Max(RowsExamined)",
+	"sum-rows-examined": "Sum(RowsExamined)",
+	"avg-rows-examined": "Avg(RowsExamined)",
+	"min-rows-affected": "Min(RowsAffected)",
+	"max-rows-affected": "Max(RowsAffected)",
+	"sum-rows-affected": "Sum(RowsAffected)",
+	"avg-rows-affected": "Avg(RowsAffected)",
+	"min-bytes-sent":    "Min(BytesSent)",
+	"max-bytes-sent":    "Max(BytesSent)",
+	"sum-bytes-sent":    "Sum(BytesSent)",
+	"avg-bytes-sent":    "Avg(BytesSent)",
+}
 
-	percentileMap := map[string]string{
-		"query-time":    "QueryTime",
-		"lock-time":     "LockTime",
-		"rows-sent":     "RowsSent",
-		"rows-examined": "RowsExamined",
-		"rows-affected": "RowsAffected",
-		"bytes-sent":    "BytesSent",
-	}
+var percentileMap = map[string]string{
+	"query-time":    "QueryTime",
+	"lock-time":     "LockTime",
+	"rows-sent":     "RowsSent",
+	"rows-examined": "RowsExamined",
+	"rows-affected": "RowsAffected",
+	"bytes-sent":    "BytesSent",
+}
+
+func headersMap(percentiles []int) map[string]string {
+	headers := defalutHeaders
 
 	for _, p := range percentiles {
 		for pkey, pval := range percentileMap {
@@ -163,23 +173,25 @@ func NewPrinter(w io.Writer, val, format string, percentiles []int, printOptions
 		writer:       w,
 		printOptions: printOptions,
 	}
-	if val == "simple" {
-		p.keywords = keywords(percentiles, outputKeywords["simple"])
-		p.headers = defaultHeaders(percentiles, outputKeywords["simple"])
-	} else if val == "standard" {
-		p.keywords = keywords(percentiles, outputKeywords["standard"])
-		p.headers = defaultHeaders(percentiles, outputKeywords["standard"])
-	} else if val == "all" {
-		p.keywords = keywords(percentiles, outputKeywords["all"])
-		p.headers = defaultHeaders(percentiles, outputKeywords["all"])
+
+	switch keywordMode(val) {
+	case simpleMode:
+		p.keywords = keywords(percentiles, outputKeywords[simpleMode])
+		p.headers = defaultHeaders(percentiles, outputKeywords[simpleMode])
+	case standardMode:
+		p.keywords = keywords(percentiles, outputKeywords[standardMode])
+		p.headers = defaultHeaders(percentiles, outputKeywords[standardMode])
+	case allMode:
+		p.keywords = keywords(percentiles, outputKeywords[allMode])
+		p.headers = defaultHeaders(percentiles, outputKeywords[allMode])
 		p.all = true
-	} else {
+	default:
 		p.keywords = helper.SplitCSV(val)
 		for _, key := range p.keywords {
 			p.headers = append(p.headers, p.headersMap[key])
 			if key == "all" {
-				p.keywords = keywords(percentiles, outputKeywords["all"])
-				p.headers = defaultHeaders(percentiles, outputKeywords["all"])
+				p.keywords = keywords(percentiles, outputKeywords[allMode])
+				p.headers = defaultHeaders(percentiles, outputKeywords[allMode])
 				p.all = true
 				break
 			}
@@ -194,7 +206,7 @@ func (p *Printer) Validate() error {
 		return nil
 	}
 
-	invalids := make([]string, 0)
+	invalids := make([]string, 0, len(p.keywords))
 	for _, key := range p.keywords {
 		if _, ok := p.headersMap[key]; !ok {
 			invalids = append(invalids, key)

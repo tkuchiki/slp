@@ -213,11 +213,13 @@ func LoadOptionsFromReader(r io.Reader) (*Options, error) {
 	opts := NewOptions()
 	buf, err := io.ReadAll(r)
 	if err != nil {
-		return opts, err
+		return nil, err
 	}
 
 	configs := NewOptions()
-	err = yaml.Unmarshal(buf, configs)
+	if err := yaml.Unmarshal(buf, configs); err != nil {
+		return nil, err
+	}
 
 	opts = SetOptions(opts,
 		Sort(configs.Sort),
@@ -239,5 +241,5 @@ func LoadOptionsFromReader(r io.Reader) (*Options, error) {
 		PaginationLimit(configs.PaginationLimit),
 	)
 
-	return opts, err
+	return opts, nil
 }
