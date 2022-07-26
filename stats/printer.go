@@ -206,7 +206,7 @@ func (p *Printer) Validate() error {
 		return nil
 	}
 
-	invalids := make([]string, 0)
+	invalids := make([]string, 0, len(p.keywords))
 	for _, key := range p.keywords {
 		if _, ok := p.headersMap[key]; !ok {
 			invalids = append(invalids, key)
