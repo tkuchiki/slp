@@ -64,7 +64,7 @@ func SplitCSVIntoInts(val string) ([]int, error) {
 
 	for _, i := range trimedInts {
 		if i < 1 && i > 100 {
-			return []int{}, fmt.Errorf(``)
+			return []int{}, fmt.Errorf(`percentiles allowed 0 to 100`)
 		}
 	}
 
