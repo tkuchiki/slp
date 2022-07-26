@@ -189,7 +189,7 @@ func NewPrinter(w io.Writer, val, format string, percentiles []int, printOptions
 		p.keywords = helper.SplitCSV(val)
 		for _, key := range p.keywords {
 			p.headers = append(p.headers, p.headersMap[key])
-			if key == "all" {
+			if key == string(allMode) {
 				p.keywords = keywords(percentiles, outputKeywords[allMode])
 				p.headers = defaultHeaders(percentiles, outputKeywords[allMode])
 				p.all = true
