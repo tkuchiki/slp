@@ -88,6 +88,35 @@ func defaultHeaders(percentiles []int, keys []string) []string {
 	return s
 }
 
+var defalutHeaders = map[string]string{
+	"count":             "Count",
+	"query":             "Query",
+	"min-query-time":    "Min(QueryTime)",
+	"max-query-time":    "Max(QueryTime)",
+	"sum-query-time":    "Sum(QueryTime)",
+	"avg-query-time":    "Avg(QueryTime)",
+	"min-lock-time":     "Min(LockTime)",
+	"max-lock-time":     "Max(LockTime)",
+	"sum-lock-time":     "Sum(LockTime)",
+	"avg-lock-time":     "Avg(LockTime)",
+	"min-rows-sent":     "Min(RowsSent)",
+	"max-rows-sent":     "Max(RowsSent)",
+	"sum-rows-sent":     "Sum(RowsSent)",
+	"avg-rows-sent":     "Avg(RowsSent)",
+	"min-rows-examined": "Min(RowsExamined)",
+	"max-rows-examined": "Max(RowsExamined)",
+	"sum-rows-examined": "Sum(RowsExamined)",
+	"avg-rows-examined": "Avg(RowsExamined)",
+	"min-rows-affected": "Min(RowsAffected)",
+	"max-rows-affected": "Max(RowsAffected)",
+	"sum-rows-affected": "Sum(RowsAffected)",
+	"avg-rows-affected": "Avg(RowsAffected)",
+	"min-bytes-sent":    "Min(BytesSent)",
+	"max-bytes-sent":    "Max(BytesSent)",
+	"sum-bytes-sent":    "Sum(BytesSent)",
+	"avg-bytes-sent":    "Avg(BytesSent)",
+}
+
 var percentileMap = map[string]string{
 	"query-time":    "QueryTime",
 	"lock-time":     "LockTime",
@@ -98,34 +127,7 @@ var percentileMap = map[string]string{
 }
 
 func headersMap(percentiles []int) map[string]string {
-	headers := map[string]string{
-		"count":             "Count",
-		"query":             "Query",
-		"min-query-time":    "Min(QueryTime)",
-		"max-query-time":    "Max(QueryTime)",
-		"sum-query-time":    "Sum(QueryTime)",
-		"avg-query-time":    "Avg(QueryTime)",
-		"min-lock-time":     "Min(LockTime)",
-		"max-lock-time":     "Max(LockTime)",
-		"sum-lock-time":     "Sum(LockTime)",
-		"avg-lock-time":     "Avg(LockTime)",
-		"min-rows-sent":     "Min(RowsSent)",
-		"max-rows-sent":     "Max(RowsSent)",
-		"sum-rows-sent":     "Sum(RowsSent)",
-		"avg-rows-sent":     "Avg(RowsSent)",
-		"min-rows-examined": "Min(RowsExamined)",
-		"max-rows-examined": "Max(RowsExamined)",
-		"sum-rows-examined": "Sum(RowsExamined)",
-		"avg-rows-examined": "Avg(RowsExamined)",
-		"min-rows-affected": "Min(RowsAffected)",
-		"max-rows-affected": "Max(RowsAffected)",
-		"sum-rows-affected": "Sum(RowsAffected)",
-		"avg-rows-affected": "Avg(RowsAffected)",
-		"min-bytes-sent":    "Min(BytesSent)",
-		"max-bytes-sent":    "Max(BytesSent)",
-		"sum-bytes-sent":    "Sum(BytesSent)",
-		"avg-bytes-sent":    "Avg(BytesSent)",
-	}
+	headers := defalutHeaders
 
 	for _, p := range percentiles {
 		for pkey, pval := range percentileMap {
