@@ -38,10 +38,9 @@ func SplitCSV(val string) []string {
 		return []string{}
 	}
 
-	trimedStrs := make([]string, 0, len(strs))
-
-	for _, s := range strs {
-		trimedStrs = append(trimedStrs, strings.Trim(s, " "))
+	trimedStrs := make([]string, len(strs))
+	for i, s := range strs {
+		trimedStrs[i] = strings.Trim(s, " ")
 	}
 
 	return trimedStrs
