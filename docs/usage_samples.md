@@ -33,7 +33,7 @@ $ cat example/slow.log | slp
 +-------+---------------------------------+----------------+----------------+----------------+----------------+
 ```
 
-## `--sort sum-query-time`
+### `--sort sum-query-time`
 
 ```console
 $ cat example/slow.log | slp --sort sum-query-time
@@ -66,7 +66,7 @@ $ cat example/slow.log | slp --sort sum-query-time
 +-------+---------------------------------+----------------+----------------+----------------+----------------+
 ```
 
-## `--reverse`
+### `--reverse`
 
 ```console
 $ cat example/slow.log | slp --sort sum-query-time -r
@@ -99,7 +99,7 @@ $ cat example/slow.log | slp --sort sum-query-time -r
 +-------+---------------------------------+----------------+----------------+----------------+----------------+
 ```
 
-## `--format md or markdown`
+### `--format md or markdown`
 
 ```console
 $ cat example/slow.log | slp --format md
@@ -130,7 +130,7 @@ $ cat example/slow.log | slp --format md
 |       | = `t3`.`id`)                    |                |                |                |                |
 ```
 
-## `--format tsv`
+### `--format tsv`
 
 ```console
 $ cat example/slow.log | slp --format tsv
@@ -145,7 +145,7 @@ Count	Query	Min(QueryTime)	Max(QueryTime)	Sum(QueryTime)	Avg(QueryTime)
 2	UPDATE `t1` SET `c1_count`=(SELECT COUNT(N) AS `cnt` FROM `t2` WHERE `c3_id` = `t3`.`id`)	1.428614	3.504247	4.932861	2.466430
 ```
 
-## `--format csv`
+### `--format csv`
 
 ```console
 $ cat example/slow.log | slp --format csv
@@ -160,7 +160,7 @@ Count,Query,Min(QueryTime),Max(QueryTime),Sum(QueryTime),Avg(QueryTime)
 2,UPDATE `t1` SET `c1_count`=(SELECT COUNT(N) AS `cnt` FROM `t2` WHERE `c3_id` = `t3`.`id`),1.428614,3.504247,4.932861,2.466430
 ```
 
-## `--noheaders`
+### `--noheaders`
 
 Only TSV, CSV
 
@@ -176,7 +176,7 @@ $ cat example/slow.log | slp --format tsv --noheaders
 2,UPDATE `t1` SET `c1_count`=(SELECT COUNT(N) AS `cnt` FROM `t2` WHERE `c3_id` = `t3`.`id`),1.428614,3.504247,4.932861,2.466430
 ```
 
-## `--limit N`
+### `--limit N`
 
 ```console
 $ cat example/slow.log | slp --limit 8
@@ -212,7 +212,7 @@ $ cat example/slow.log | slp --limit 7
 2022/07/26 09:46:34 Too many Queries (7 or less)
 ```
 
-## `-o count,query,avg-query-time,p99-query-time`
+### `-o count,query,avg-query-time,p99-query-time`
 
 ```console
 $ cat example/slow.log | slp -o count,query,avg-query-time,p99-query-time --percentiles 99
@@ -245,7 +245,7 @@ $ cat example/slow.log | slp -o count,query,avg-query-time,p99-query-time --perc
 +-------+---------------------------------+----------------+----------------+
 ```
 
-## `--show-footers`
+### `--show-footers`
 
 ```console
 $ cat example/slow.log | slp --show-footers
@@ -280,7 +280,7 @@ $ cat example/slow.log | slp --show-footers
 +-------+---------------------------------+----------------+----------------+----------------+----------------+
 ```
  
-## `--pos /tmp/slp.pos`
+### `--pos /tmp/slp.pos`
  
 ```console
 $ stat -c %s example/slow.log
@@ -341,7 +341,7 @@ $ stat -c %s example/slow.log
 2657
 ```
 
-## `--nosave-pos`
+### `--nosave-pos`
 
 ```console
 $ stat -c %s example/slow.log
@@ -399,7 +399,7 @@ $ cat /tmp/slp.pos
 2395
 ```
 
-## `--dump /tmp/slp.dump / --load /tmp/slp.dump`
+### `--dump /tmp/slp.dump / --load /tmp/slp.dump`
 
 ```console
 $ cat example/slow.log | slp --dump /tmp/slp.dump
@@ -455,4 +455,41 @@ $ slp --load /tmp/alp.dump
 |       | `cnt` FROM `t2` WHERE `c3_id`   |                |                |                |                |
 |       | = `t3`.`id`)                    |                |                |                |                |
 +-------+---------------------------------+----------------+----------------+----------------+----------------+
+```
+
+### `-a`, `--noabstract`
+
+```console
+$ cat example/slow.log | slp -a
++-------+--------------------------------+----------------+----------------+----------------+----------------+
+| COUNT |             QUERY              | MIN(QUERYTIME) | MAX(QUERYTIME) | SUM(QUERYTIME) | AVG(QUERYTIME) |
++-------+--------------------------------+----------------+----------------+----------------+----------------+
+| 1     | DELETE FROM `t2` WHERE         | 0.369618       | 0.369618       | 0.369618       | 0.369618       |
+|       | '2022-05-13 09:00:00.000'      |                |                |                |                |
+|       | < `c1_date` OR `c2` NOT IN     |                |                |                |                |
+|       | (SELECT `c3` FROM `t3`)        |                |                |                |                |
+| 1     | DELETE FROM `t4` WHERE `c4`    | 7.148949       | 7.148949       | 7.148949       | 7.148949       |
+|       | NOT IN (SELECT `c1` FROM `t1`) |                |                |                |                |
+| 1     | INSERT INTO t2 (`c2_id`,       | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | `c2_string`, `c2_date`) VALUES |                |                |                |                |
+|       | (123, 'abc', '2022-07-20       |                |                |                |                |
+|       | 00:32:19.086200468')           |                |                |                |                |
+| 1     | INSERT INTO t2 (`c2_id`,       | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | `c2_string`, `c2_date`) VALUES |                |                |                |                |
+|       | (123, 'abc', '2022-07-20       |                |                |                |                |
+|       | 00:32:19.086200468'),(456,     |                |                |                |                |
+|       | 'def', '2022-07-21             |                |                |                |                |
+|       | 00:32:19.086200468')           |                |                |                |                |
+| 1     | SELECT * FROM t5 WHERE `c5_id` | 0.010753       | 0.010753       | 0.010753       | 0.010753       |
+|       | IN ('id-123', 'id-456',        |                |                |                |                |
+|       | 'id-789')                      |                |                |                |                |
+| 1     | SELECT `t1`.`id` FROM `t1`     | 0.020219       | 0.020219       | 0.020219       | 0.020219       |
+|       | JOIN `t2` ON `t2`.`t1_id` =    |                |                |                |                |
+|       | `t1`.`id` WHERE `t2`.`t1_id` = |                |                |                |                |
+|       | 'id-123' ORDER BY t2.t1_id     |                |                |                |                |
+| 2     | UPDATE `t1` SET `c1_count`     | 1.428614       | 3.504247       | 4.932861       | 2.466430       |
+|       | = (SELECT COUNT(*) AS cnt      |                |                |                |                |
+|       | FROM `t2` where `c3_id` =      |                |                |                |                |
+|       | `t3`.`id`)                     |                |                |                |                |
++-------+--------------------------------+----------------+----------------+----------------+----------------+
 ```
