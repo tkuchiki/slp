@@ -1,0 +1,20 @@
+# Time: 2022-07-20T00:32:03.138649Z
+# User@Host: root[root] @ localhost [127.0.0.1]  Id:     8
+# Query_time: 1.148949  Lock_time: 0.000004 Rows_sent: 0  Rows_examined: 10720537
+SET timestamp=1658277115;
+SELECT * FROM `t1` WHERE `c1` IN (1, 2, 3);
+# Time: 2022-07-20T00:32:03.238649Z
+# User@Host: root[root] @ localhost [127.0.0.1]  Id:     8
+# Query_time: 2.148949  Lock_time: 0.000005 Rows_sent: 0  Rows_examined: 20720537
+SET timestamp=1658277115;
+SELECT * FROM `t1` WHERE `c1` IN (1, 2, 3, 4, 5, 6);
+# Time: 2022-07-20T00:32:19.097889Z
+# User@Host: root[root] @ localhost [127.0.0.1]  Id:     9
+# Query_time: 0.010498  Lock_time: 0.000000 Rows_sent: 0  Rows_examined: 0
+SET timestamp=1658277139;
+INSERT INTO t2 (`c2_id`, `c2_string`, `c2_date`) VALUES (123, 'abc', '2022-07-20 00:32:19.086200468');
+# Time: 2022-07-20T00:32:19.097889Z
+# User@Host: root[root] @ localhost [127.0.0.1]  Id:     9
+# Query_time: 0.010498  Lock_time: 0.000000 Rows_sent: 0  Rows_examined: 0
+SET timestamp=1658277139;
+INSERT INTO t2 (`c2_id`, `c2_string`, `c2_date`) VALUES (123, 'abc', '2022-07-20 00:32:19.086200468'),(456, 'def', '2022-07-21 00:32:19.086200468');
