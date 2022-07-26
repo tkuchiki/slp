@@ -16,7 +16,7 @@ import (
 type hints struct {
 	values map[string]int
 	len    int
-	mu     sync.RWMutex
+	mu     sync.Mutex
 }
 
 func newHints() *hints {
