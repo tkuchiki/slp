@@ -88,6 +88,15 @@ func defaultHeaders(percentiles []int, keys []string) []string {
 	return s
 }
 
+var percentileMap = map[string]string{
+	"query-time":    "QueryTime",
+	"lock-time":     "LockTime",
+	"rows-sent":     "RowsSent",
+	"rows-examined": "RowsExamined",
+	"rows-affected": "RowsAffected",
+	"bytes-sent":    "BytesSent",
+}
+
 func headersMap(percentiles []int) map[string]string {
 	headers := map[string]string{
 		"count":             "Count",
@@ -116,15 +125,6 @@ func headersMap(percentiles []int) map[string]string {
 		"max-bytes-sent":    "Max(BytesSent)",
 		"sum-bytes-sent":    "Sum(BytesSent)",
 		"avg-bytes-sent":    "Avg(BytesSent)",
-	}
-
-	percentileMap := map[string]string{
-		"query-time":    "QueryTime",
-		"lock-time":     "LockTime",
-		"rows-sent":     "RowsSent",
-		"rows-examined": "RowsExamined",
-		"rows-affected": "RowsAffected",
-		"bytes-sent":    "BytesSent",
 	}
 
 	for _, p := range percentiles {
