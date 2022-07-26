@@ -98,6 +98,9 @@ func RenderTableWithGridJS(title string, columns []string, rows [][]string, pagi
 	}
 
 	var buf bytes.Buffer
-	err = t.Execute(&buf, data)
-	return buf.String(), err
+	if err := t.Execute(&buf, data); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }
