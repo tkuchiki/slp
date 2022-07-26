@@ -264,6 +264,12 @@ sample は [Usage samples](./docs/usage_samples.md) を参照してください�
     - e.g. `90,95,99`
 - `-a`, `--noabstract`
     - すべての数値と文字列を `N` と `'S'` に置き換えないようにします
+- `--bundle-values`
+    - INSERT 文の VALUES の値の個数が違うクエリを一つのクエリとして集計します
+    - [Usage samples](https://github.com/tkuchiki/slp/blob/main/docs/usage_samples.md#--bundle-values---bundle-where-in) を参照してください
+- `--bundle-where-in`
+    - WHERE IN の値の個数が違うクエリを一つのクエリとして集計します
+    - [Usage samples](https://github.com/tkuchiki/slp/blob/main/docs/usage_samples.md#--bundle-values---bundle-where-in) を参照してください
 
 ## フィルタ
 

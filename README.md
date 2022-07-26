@@ -264,6 +264,12 @@ See: [Usage samples](./docs/usage_samples.md)
     - e.g. `90,95,99`
 - `-a`, `--noabstract`
     - Do not abstract all numbers to N and strings to 'S'
+- `--bundle-values`
+    - Bundle VALUES of INSERT statement
+    - See: [Usage samples](https://github.com/tkuchiki/slp/blob/main/docs/usage_samples.md#--bundle-values---bundle-where-in)
+- `--bundle-where-in`
+    - Bundle WHERE IN conditions
+    - See: [Usage samples](https://github.com/tkuchiki/slp/blob/main/docs/usage_samples.md#--bundle-values---bundle-where-in)
 
 ## Filter
 
