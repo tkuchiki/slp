@@ -213,7 +213,7 @@ func LoadOptionsFromReader(r io.Reader) (*Options, error) {
 	opts := NewOptions()
 	buf, err := io.ReadAll(r)
 	if err != nil {
-		return opts, err
+		return nil, err
 	}
 
 	configs := NewOptions()
