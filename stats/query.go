@@ -1,6 +1,7 @@
 package stats
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"regexp"
@@ -8,7 +9,7 @@ import (
 	"sync"
 
 	mlog "github.com/percona/go-mysql/log"
-	"github.com/tkuchiki/slp/errors"
+	slperrors "github.com/tkuchiki/slp/errors"
 	"github.com/tkuchiki/slp/helper"
 	"github.com/tkuchiki/slp/options"
 )
@@ -119,9 +120,11 @@ func (qs *QueryStats) InitFilter(options *options.Options) error {
 
 func (qs *QueryStats) DoFilter(qstat *mlog.Event) (bool, error) {
 	err := qs.filter.Do(qstat)
-	if err == errors.SkipReadLineErr {
-		return false, nil
-	} else if err != nil {
+	if err != nil {
+		if errors.Is(err, slperrors.SkipReadLineErr) {
+			return false, nil
+		}
+
 		return false, err
 	}
 
