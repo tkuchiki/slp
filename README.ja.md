@@ -49,6 +49,33 @@ Flags:
   -v, --version                  version for slp
 
 Use "slp [command] --help" for more information about a command.
+
+$ cat example/slow.log | slp
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| COUNT |              QUERY              | MIN(QUERYTIME) | MAX(QUERYTIME) | SUM(QUERYTIME) | AVG(QUERYTIME) |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
+| 1     | DELETE FROM `t2` WHERE 'S'      | 0.369618       | 0.369618       | 0.369618       | 0.369618       |
+|       | < `c1_date` OR `c2` NOT IN      |                |                |                |                |
+|       | (SELECT `c3` FROM `t3`)         |                |                |                |                |
+| 1     | DELETE FROM `t4` WHERE `c4`     | 7.148949       | 7.148949       | 7.148949       | 7.148949       |
+|       | NOT IN (SELECT `c1` FROM `t1`)  |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S')              |                |                |                |                |
+| 1     | INSERT INTO `t2`                | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | (`c2_id`,`c2_string`,`c2_date`) |                |                |                |                |
+|       | VALUES (N,'S','S'),(N,'S','S')  |                |                |                |                |
+| 1     | SELECT * FROM `t5` WHERE        | 0.010753       | 0.010753       | 0.010753       | 0.010753       |
+|       | `c5_id` IN ('S','S','S')        |                |                |                |                |
+| 1     | SELECT `t1`.`id` FROM `t1`      | 0.020219       | 0.020219       | 0.020219       | 0.020219       |
+|       | JOIN `t2` ON `t2`.`t1_id` =     |                |                |                |                |
+|       | `t1`.`id` WHERE `t2`.`t1_id` =  |                |                |                |                |
+|       | 'S' ORDER BY `t2`.`t1_id`       |                |                |                |                |
+| 2     | UPDATE `t1` SET                 | 1.428614       | 3.504247       | 4.932861       | 2.466430       |
+|       | `c1_count`=(SELECT COUNT(N) AS  |                |                |                |                |
+|       | `cnt` FROM `t2` WHERE `c3_id`   |                |                |                |                |
+|       | = `t3`.`id`)                    |                |                |                |                |
++-------+---------------------------------+----------------+----------------+----------------+----------------+
 ```
 
 - `cat /path/to/slowlog | slp` のようにパイプでデータを送るか、後述する `-f, --file` オプションでファイルを指定して解析します
