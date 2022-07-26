@@ -18,15 +18,8 @@ func NewFilter(options *options.Options) *Filter {
 }
 
 func (f *Filter) Init() error {
-	var err error
-
-	if err != nil {
-		return err
-	}
-
 	if f.options.Filters != "" {
-		var ee *ExpEval
-		ee, err = NewExpEval(f.options.Filters)
+		ee, err := NewExpEval(f.options.Filters)
 		if err != nil {
 			return err
 		}
