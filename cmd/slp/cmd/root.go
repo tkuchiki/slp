@@ -40,7 +40,7 @@ func NewRootCmd(version string) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				if fi.Size() == 0 {
+				if fi.Mode()&os.ModeNamedPipe == 0 {
 					cmd.Usage()
 					slowlogFile.Close()
 					return nil
