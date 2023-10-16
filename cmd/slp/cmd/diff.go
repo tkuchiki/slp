@@ -7,15 +7,14 @@ import (
 	"github.com/tkuchiki/slp/stats"
 )
 
-func NewDiffCmd(rootCmd *cobra.Command) *cobra.Command {
+func newDiffCmd(flags *flags) *cobra.Command {
 	var diffCmd = &cobra.Command{
 		Use:   "diff <from> <to>",
 		Args:  cobra.ExactArgs(2),
 		Short: "Show the difference between the two profile results",
 		Long:  `Show the difference between the two profile results`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			sortOptions := stats.NewSortOptions()
-			opts, err := createOptions(rootCmd, sortOptions)
+			opts, err := flags.createDiffOptions(cmd)
 			if err != nil {
 				return err
 			}
@@ -29,7 +28,7 @@ func NewDiffCmd(rootCmd *cobra.Command) *cobra.Command {
 			}
 
 			sts.SetOptions(opts)
-			sts.SetSortOptions(sortOptions)
+			sts.SetSortOptions(flags.sortOptions)
 
 			fromPath := args[0]
 			toPath := args[1]
@@ -60,7 +59,7 @@ func NewDiffCmd(rootCmd *cobra.Command) *cobra.Command {
 			}
 
 			toSts.SetOptions(opts)
-			toSts.SetSortOptions(sortOptions)
+			toSts.SetSortOptions(flags.sortOptions)
 
 			to, err := os.Open(toPath)
 			if err != nil {
@@ -85,6 +84,10 @@ func NewDiffCmd(rootCmd *cobra.Command) *cobra.Command {
 			return nil
 		},
 	}
+
+	diffCmd.Flags().SortFlags = false
+	diffCmd.PersistentFlags().SortFlags = false
+	diffCmd.InheritedFlags().SortFlags = false
 
 	return diffCmd
 }
