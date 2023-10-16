@@ -1,10 +1,7 @@
 package options
 
 import (
-	"io"
-
 	"github.com/tkuchiki/slp/helper"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -18,23 +15,25 @@ const (
 var DefaultPercentilesOption = []int{}
 
 type Options struct {
-	File            string   `yaml:"file"`
-	Sort            string   `yaml:"sort"`
-	Reverse         bool     `yaml:"reverse"`
-	Format          string   `yaml:"format"`
-	NoHeaders       bool     `yaml:"noheaders"`
-	ShowFooters     bool     `yaml:"show_footers"`
-	Limit           int      `yaml:"limit"`
-	MatchingGroups  []string `yaml:"matching_groups"`
-	Filters         string   `yaml:"filters"`
-	PosFile         string   `yaml:"pos_file"`
-	NoSavePos       bool     `yaml:"nosave_pos"`
-	Output          string   `yaml:"output"`
-	Percentiles     []int    `yaml:"percentiles"`
-	BundleWhereIn   bool     `yaml:"bundle_where_in"`
-	BundleValues    bool     `yaml:"bundle_values"`
-	NoAbstract      bool     `yaml:"noabstract"`
-	PaginationLimit int      `yaml:"pagination_limit"`
+	File            string   `mapstructure:"file"`
+	Dump            string   `mapstructure:"dump"`
+	Load            string   `mapstructure:"load"`
+	Sort            string   `mapstructure:"sort"`
+	Reverse         bool     `mapstructure:"reverse"`
+	Format          string   `mapstructure:"format"`
+	NoHeaders       bool     `mapstructure:"noheaders"`
+	ShowFooters     bool     `mapstructure:"show_footers"`
+	Limit           int      `mapstructure:"limit"`
+	MatchingGroups  []string `mapstructure:"matching_groups"`
+	Filters         string   `mapstructure:"filters"`
+	PosFile         string   `mapstructure:"pos_file"`
+	NoSavePos       bool     `mapstructure:"nosave_pos"`
+	Output          string   `mapstructure:"output"`
+	Percentiles     []int    `mapstructure:"percentiles"`
+	BundleWhereIn   bool     `mapstructure:"bundle_where_in"`
+	BundleValues    bool     `mapstructure:"bundle_values"`
+	NoAbstract      bool     `mapstructure:"noabstract"`
+	PaginationLimit int      `mapstructure:"pagination_limit"`
 }
 
 type Option func(*Options)
@@ -43,6 +42,22 @@ func File(s string) Option {
 	return func(opts *Options) {
 		if s != "" {
 			opts.File = s
+		}
+	}
+}
+
+func Dump(s string) Option {
+	return func(opts *Options) {
+		if s != "" {
+			opts.Dump = s
+		}
+	}
+}
+
+func Load(s string) Option {
+	return func(opts *Options) {
+		if s != "" {
+			opts.Load = s
 		}
 	}
 }
@@ -207,39 +222,4 @@ func SetOptions(options *Options, opt ...Option) *Options {
 	}
 
 	return options
-}
-
-func LoadOptionsFromReader(r io.Reader) (*Options, error) {
-	opts := NewOptions()
-	buf, err := io.ReadAll(r)
-	if err != nil {
-		return nil, err
-	}
-
-	configs := NewOptions()
-	if err := yaml.Unmarshal(buf, configs); err != nil {
-		return nil, err
-	}
-
-	opts = SetOptions(opts,
-		Sort(configs.Sort),
-		Limit(configs.Limit),
-		Output(configs.Output),
-		Reverse(configs.Reverse),
-		File(configs.File),
-		Format(configs.Format),
-		NoHeaders(configs.NoHeaders),
-		ShowFooters(configs.ShowFooters),
-		PosFile(configs.PosFile),
-		NoSavePos(configs.NoSavePos),
-		MatchingGroups(configs.MatchingGroups),
-		Filters(configs.Filters),
-		Percentiles(configs.Percentiles),
-		BundleWhereIn(configs.BundleWhereIn),
-		BundleValues(configs.BundleValues),
-		NoAbstract(configs.NoAbstract),
-		PaginationLimit(configs.PaginationLimit),
-	)
-
-	return opts, nil
 }

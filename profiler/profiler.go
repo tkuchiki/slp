@@ -59,6 +59,49 @@ func (p *Profiler) Seek(file *os.File, n int64) error {
 	return err
 }
 
+func (p *Profiler) ReadPositionFile(posFilePath string, slowlogFile *os.File) (*os.File, int64, error) {
+	if posFilePath == "" {
+		return nil, 0, nil
+	}
+
+	posFile, err := p.OpenPosFile(posFilePath)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	position, err := p.ReadPosFile(posFile)
+	if err != nil && err != io.EOF {
+		return nil, 0, err
+	}
+
+	err = p.Seek(slowlogFile, position)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	p.SetReadBytes(position)
+
+	return posFile, position, nil
+}
+
+func (p *Profiler) WritePositionFile(posFile *os.File, noSavePos bool, position int64) error {
+	if !noSavePos && posFile != nil {
+		posFile.Seek(0, 0)
+		if position > 0 {
+			position += p.ReadBytes()
+		} else {
+			position = p.ReadBytes()
+		}
+
+		_, err := posFile.Write([]byte(fmt.Sprint(position)))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (p *Profiler) Profile(qstats *stats.QueryStats) error {
 	defer p.slowp.Stop()
 	go p.slowp.Start()
@@ -95,6 +138,64 @@ func (p *Profiler) Profile(qstats *stats.QueryStats) error {
 
 		p.readBytes = e.OffsetEnd
 	}
+
+	return nil
+}
+
+type ProfileHelper struct {
+	inReader *os.File
+}
+
+func NewProfileHelper() *ProfileHelper {
+	return &ProfileHelper{
+		inReader: os.Stdin,
+	}
+}
+
+func (ph *ProfileHelper) SetInReader(f *os.File) {
+	ph.inReader = f
+}
+
+func (ph *ProfileHelper) Open(filename string) (*os.File, error) {
+	var f *os.File
+	var err error
+
+	if filename != "" {
+		f, err = os.Open(filename)
+	} else {
+		f = ph.inReader
+	}
+
+	return f, err
+}
+
+func (ph *ProfileHelper) LoadAndPrint(dumpFile string, sts *stats.QueryStats, printer *stats.Printer) error {
+	lf, err := os.Open(dumpFile)
+	if err != nil {
+		return err
+	}
+	err = sts.LoadStats(lf)
+	if err != nil {
+		return err
+	}
+	defer lf.Close()
+
+	sts.SortWithOptions()
+	printer.Print(sts, nil)
+	return nil
+}
+
+func (ph *ProfileHelper) Dump(dumpFile string, sts *stats.QueryStats) error {
+	if dumpFile == "" {
+		return nil
+	}
+
+	df, err := os.OpenFile(dumpFile, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+	err = sts.DumpStats(df)
+	if err != nil {
+		return err
+	}
+	defer df.Close()
 
 	return nil
 }
