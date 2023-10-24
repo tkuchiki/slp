@@ -70,6 +70,7 @@ func Test_createOptionsFromConfig_overwrite(t *testing.T) {
 	viper.Set("bundle_where_in", overwrittenOpts.BundleWhereIn)
 	viper.Set("bundle_values", overwrittenOpts.BundleValues)
 	viper.Set("noabstract", overwrittenOpts.NoAbstract)
+	viper.Set("log_line_prefix", overwrittenOpts.LogLinePrefix)
 
 	var opts *options.Options
 	opts, err = command.flags.createOptionsFromConfig(command.rootCmd)

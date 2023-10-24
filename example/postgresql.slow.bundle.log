@@ -1,0 +1,18 @@
+2023-10-22 12:29:25.658 GMT [1] LOG:  starting PostgreSQL 16.0 (Debian 16.0-1.pgdg120+1) on aarch64-unknown-linux-gnu, compiled by gcc (Debian 12.2.0-14) 12.2.0, 64-bit
+2023-10-22 12:29:25.658 GMT [1] LOG:  listening on IPv4 address "0.0.0.0", port 5432
+2023-10-22 12:29:25.658 GMT [1] LOG:  listening on IPv6 address "::", port 5432
+2023-10-22 12:29:25.660 GMT [1] LOG:  listening on Unix socket "/var/run/postgresql/.s.PGSQL.5432"
+2023-10-22 12:29:25.666 GMT [30] LOG:  database system was shut down at 2023-10-18 13:36:10 GMT
+2023-10-22 12:29:25.676 GMT [1] LOG:  database system is ready to accept connections
+2023-10-22 12:29:45.724 GMT [40] FATAL:  database locale is incompatible with operating system
+2023-10-22 12:29:45.724 GMT [40] DETAIL:  The database was initialized with LC_COLLATE "en_US.utf8",  which is not recognized by setlocale().
+2023-10-22 12:29:45.724 GMT [40] HINT:  Recreate the database with another locale or install the missing locale.
+2023-10-22 12:30:26.366 GMT [47]  LOG:  duration: 369.618 ms  statement: DELETE FROM "t2" WHERE '2022-05-13 09:00:00.000' < "c1_date" OR "c2" NOT IN (SELECT "c3" FROM "t3");
+2023-10-22 12:31:26.366 GMT [47]  LOG:  duration: 7148.949 ms  statement: DELETE FROM "t4" WHERE "c4" NOT IN (SELECT "c1" FROM "t1");
+2023-10-22 12:40:26.366 GMT [47]  LOG:  duration: 3504.247 ms  statement: UPDATE "t1" SET "c1_count" = (SELECT COUNT(*) AS cnt FROM "t2" where "c3_id" = "t3"."id");
+2023-10-22 12:45:26.366 GMT [47]  LOG:  duration: 1428.614 ms  statement: UPDATE "t1" SET "c1_count" = (SELECT COUNT(*) AS cnt FROM "t2" where "c3_id" = "t3"."id");
+2023-10-22 12:50:26.366 GMT [47]  LOG:  duration: 10.498 ms  statement: INSERT INTO t2 ("c2_id", "c2_string", "c2_date") VALUES (123, 'abc', '2022-07-20 00:32:19.086200468');
+2023-10-22 12:51:26.366 GMT [47]  LOG:  duration: 10.498 ms  statement: INSERT INTO t2 ("c2_id", "c2_string", "c2_date") VALUES (123, 'abc', '2022-07-20 00:32:19.086200468'),(456, 'def', '2022-07-21 00:32:19.086200468');
+2023-10-22 12:52:26.366 GMT [47]  LOG:  duration: 10.753 ms  statement: SELECT * FROM t5 WHERE "c5_id" IN ('id-123', 'id-456', 'id-789');
+2023-10-22 12:53:26.366 GMT [47]  LOG:  duration: 20.219 ms  statement: SELECT "t1"."id" FROM "t1" JOIN "t2" ON "t2"."t1_id" = "t1"."id" WHERE "t2"."t1_id" = 'id-123' ORDER BY t2.t1_id;
+2023-10-22 13:18:58.660 GMT [28] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.007 s, sync=0.004 s, total=0.025 s; sync files=2, longest=0.003 s, average=0.002 s; distance=0 kB, estimate=0 kB; lsn=0/19549F0, redo lsn=0/19549B8
