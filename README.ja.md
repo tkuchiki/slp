@@ -1,6 +1,6 @@
 # slp
 
-slp は MySQL の slowlog 解析ツールです。
+slp は MySQL/PostgreSQL の slowlog 解析ツールです。
 
 このツールは [mysqldumpslow](https://dev.mysql.com/doc/refman/8.0/en/mysqldumpslow.html) に似ていますが, より多くのメトリクスを確認することができます。
 
@@ -12,45 +12,27 @@ https://github.com/tkuchiki/slp/releases から binary をダウンロードし�
 
 ```console
 $ slp --help
-slp is a (MySQL) SlowLog Profiler
+slp is a MySQL/PostgreSQL SlowLog Profiler
 
 Usage:
   slp [flags]
   slp [command]
 
 Available Commands:
-  completion           Generate the autocompletion script for the specified shell
-  diff                 Show the difference between the two profile results
-  help                 Help about any command
-  print-output-options Print --output options
+  completion  Generate the autocompletion script for the specified shell
+  diff        Show the difference between the two profile results
+  help        Help about any command
+  my          Profile the slowlogs for MySQL
+  pg          Profile the slowlogs for PostgreSQL
 
 Flags:
-      --bundle-values            Bundle VALUES of INSERT statement
-      --bundle-where-in          Bundle WHERE IN conditions
-      --config string            The configuration file
-      --dump string              Dump profiled data as YAML
-      --file string              The slowlog file
-  -f, --filters string           Only the logs are profiled that match the conditions
-      --format string            The output format (table, markdown, tsv, csv and html) (default "table")
-  -h, --help                     help for slp
-      --limit int                The maximum number of results to display (default 5000)
-      --load string              Load the profiled YAML data
-  -m, --matching-groups string   Specifies Query matching groups separated by commas
-  -a, --noabstract               Do not abstract all numbers to N and strings to 'S'
-      --noheaders                Output no header line at all (only --format=tsv, csv)
-      --nosave-pos               Do not save position file
-  -o, --output string            Specifies the results to display, separated by commas (default "simple")
-      --page int                 Number of pages of pagination (default 100)
-      --percentiles string       Specifies the percentiles separated by commas
-      --pos string               The position file
-  -r, --reverse                  Sort results in reverse order
-      --show-footers             Output footer line at all (only --format=table, markdown)
-      --sort string              Output the results in sorted order (default "count")
-  -v, --version                  version for slp
+      --config string   The configuration file
+  -h, --help            help for slp
+  -v, --version         version for slp
 
 Use "slp [command] --help" for more information about a command.
 
-$ cat example/slow.log | slp
+$ cat example/mysql.slow.log | slp my
 +-------+---------------------------------+----------------+----------------+----------------+----------------+
 | COUNT |              QUERY              | MIN(QUERYTIME) | MAX(QUERYTIME) | SUM(QUERYTIME) | AVG(QUERYTIME) |
 +-------+---------------------------------+----------------+----------------+----------------+----------------+
@@ -76,16 +58,42 @@ $ cat example/slow.log | slp
 |       | `cnt` FROM `t2` WHERE `c3_id`   |                |                |                |                |
 |       | = `t3`.`id`)                    |                |                |                |                |
 +-------+---------------------------------+----------------+----------------+----------------+----------------+
+
+$ cat example/postgresql.slow.log | slp pg
++-------+--------------------------------+----------------+----------------+----------------+----------------+
+| COUNT |             QUERY              | MIN(QUERYTIME) | MAX(QUERYTIME) | SUM(QUERYTIME) | AVG(QUERYTIME) |
++-------+--------------------------------+----------------+----------------+----------------+----------------+
+| 1     | DELETE FROM t2 WHERE 'S' <     | 0.369618       | 0.369618       | 0.369618       | 0.369618       |
+|       | c1_date OR NOT c2 IN (SELECT   |                |                |                |                |
+|       | c3 FROM t3)                    |                |                |                |                |
+| 1     | DELETE FROM t4 WHERE NOT c4 IN | 7.148949       | 7.148949       | 7.148949       | 7.148949       |
+|       | (SELECT c1 FROM t1)            |                |                |                |                |
+| 1     | INSERT INTO t2 (c2_id,         | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | c2_string, c2_date) VALUES (N, |                |                |                |                |
+|       | 'S', 'S')                      |                |                |                |                |
+| 1     | INSERT INTO t2 (c2_id,         | 0.010498       | 0.010498       | 0.010498       | 0.010498       |
+|       | c2_string, c2_date) VALUES (N, |                |                |                |                |
+|       | 'S', 'S'), (N, 'S', 'S')       |                |                |                |                |
+| 1     | SELECT * FROM t5 WHERE c5_id   | 0.010753       | 0.010753       | 0.010753       | 0.010753       |
+|       | IN ('S', 'S', 'S')             |                |                |                |                |
+| 1     | SELECT t1.id FROM t1 JOIN      | 0.020219       | 0.020219       | 0.020219       | 0.020219       |
+|       | t2 ON t2.t1_id = t1.id WHERE   |                |                |                |                |
+|       | t2.t1_id = 'S' ORDER BY        |                |                |                |                |
+|       | t2.t1_id                       |                |                |                |                |
+| 2     | UPDATE t1 SET c1_count =       | 1.428614       | 3.504247       | 4.932861       | 2.466430       |
+|       | (SELECT count(*) AS cnt FROM   |                |                |                |                |
+|       | t2 WHERE c3_id = t3.id)        |                |                |                |                |
++-------+--------------------------------+----------------+----------------+----------------+----------------+
 ```
 
-- `cat /path/to/slowlog | slp` のようにパイプでデータを送るか、後述する `-f, --file` オプションでファイルを指定して解析します
+- `cat /path/to/slowlog | slp my` のようにパイプでデータを送るか、後述する `-f, --file` オプションでファイルを指定して解析します
 
 ## print-output-options
 
 `--output` オプションに指定できる値を確認できます。
 
 ```console
-$ slp print-output-options
+$ slp my print-output-options
 count
 query
 min-query-time
@@ -113,7 +121,15 @@ max-bytes-sent
 sum-bytes-sent
 avg-bytes-sent
 
-$ slp print-output-options --percentiles 95,99
+$ slp pg print-output-options
+count
+query
+min-query-time
+max-query-time
+sum-query-time
+avg-query-time
+
+$ slp my print-output-options --percentiles 95,99
 count
 query
 min-query-time
@@ -152,6 +168,16 @@ sum-bytes-sent
 avg-bytes-sent
 p95-bytes-sent
 p99-bytes-sent
+
+$ slp pg print-output-options --percentiles 95,99
+count
+query
+min-query-time
+max-query-time
+sum-query-time
+avg-query-time
+p95-query-time
+p99-query-time
 ```
 
 ## diff
@@ -161,9 +187,9 @@ p99-bytes-sent
 - `-` は `count`、`rows_sent`、`rows_examined`、`rows_affected`、`bytes_sent`の減少、`query_time`、`lock_time` が速くなったことを意味します
 
 ```console
-$ cat /path/to/slow.log | slp --dump dumpfile1.yaml
+$ cat /path/to/mysql.slow.log | slp my --dump dumpfile1.yaml
 
-$ cat /path/to/slow.log | slp --dump dumpfile2.yaml
+$ cat /path/to/mysql.slow.log | slp my --dump dumpfile2.yaml
 
 $ slp diff dumpfile1.yaml dumpfile2.yaml --show-footers
 +---------+---------------------------------+----------------+-------------------+-------------------+-------------------+
@@ -270,6 +296,11 @@ sample は [Usage samples](./docs/usage_samples.md) を参照してください�
 - `--bundle-where-in`
     - WHERE IN の値の個数が違うクエリを一つのクエリとして集計します
     - [Usage samples](https://github.com/tkuchiki/slp/blob/main/docs/usage_samples.md#--bundle-values---bundle-where-in) を参照してください
+
+### `pg` コマンドのオプション
+
+- `--log-line-prefix="%m [%p]"`
+    - postgresql.conf の `log_line_prefix` の値
 
 ## フィルタ
 
