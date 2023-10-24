@@ -10,7 +10,7 @@ import (
 func TestCommonFlags(t *testing.T) {
 	tempDir := t.TempDir()
 
-	slowlogFile := "../../../example/slow.log"
+	slowlogFile := "../../../example/mysql.slow.log"
 
 	tempConfig, err := testutil.CreateTempDirAndFile(tempDir, "test_common_flags_temp_config", testutil.ConfigFile())
 	if err != nil {
@@ -31,14 +31,14 @@ func TestCommonFlags(t *testing.T) {
 		args []string
 	}{
 		{
-			args: []string{"--file", slowlogFile,
+			args: []string{"my", "--file", slowlogFile,
 				"--noheaders",
 				"--format", "tsv",
 				"--config", tempConfig,
 			},
 		},
 		{
-			args: []string{"--file", slowlogFile,
+			args: []string{"my", "--file", slowlogFile,
 				"--filters", "Query matches 'SELECT'",
 				"--format", "markdown",
 				"--limit", "5",
@@ -49,35 +49,39 @@ func TestCommonFlags(t *testing.T) {
 				"--reverse",
 				"--show-footers",
 				"--sort", "query",
+				"--bundle-where-in",
+				"--bundle-values",
+				"--noabstract",
 			},
 		},
 		{
-			args: []string{"--file", slowlogFile,
+			args: []string{"my", "--file", slowlogFile,
 				"-f", "Query matches 'SELECT'",
 				"-m", "SELECT .+",
 				"-o", "count,query",
 				"-r",
+				"-a",
 			},
 		},
 		{
-			args: []string{"--file", slowlogFile,
+			args: []string{"my", "--file", slowlogFile,
 				"--pos", tempPos,
 			},
 		},
 		{
-			args: []string{"--file", slowlogFile,
+			args: []string{"my", "--file", slowlogFile,
 				"--pos", tempPos,
 				"--nosave-pos",
 			},
 		},
 		// Do not change the order
 		{
-			args: []string{"--file", slowlogFile,
+			args: []string{"my", "--file", slowlogFile,
 				"--dump", tempDump,
 			},
 		},
 		{
-			args: []string{
+			args: []string{"my",
 				"--load", tempDump,
 			},
 		},

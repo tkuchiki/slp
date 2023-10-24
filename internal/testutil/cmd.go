@@ -7,7 +7,6 @@ import (
 	"text/template"
 
 	"github.com/tkuchiki/slp/options"
-	"github.com/tkuchiki/slp/stats"
 )
 
 func CreateTempDirAndFile(dir, filename, content string) (string, error) {
@@ -20,16 +19,14 @@ func CreateTempDirAndFile(dir, filename, content string) (string, error) {
 func ConfigFile() string {
 	return `sort: query
 reverse: true
+output: count,query
 `
 }
 
 func DummyOptions(sort string) *options.Options {
-	sortOptions := stats.NewSortOptions()
-	sortOptions.SetAndValidate(sort)
-
 	return &options.Options{
 		File:        "/path/to/file",
-		Sort:        sortOptions.SortType(),
+		Sort:        sort,
 		Reverse:     false,
 		Format:      "markdown",
 		Limit:       100,
@@ -39,7 +36,7 @@ func DummyOptions(sort string) *options.Options {
 			"SELECT .+",
 		},
 		Filters:         "Query matches 'SELECT'",
-		Output:          "count,query,min,max",
+		Output:          "count,query,min-query-time,max-query-time",
 		PosFile:         "/path/to/pos",
 		NoSavePos:       false,
 		Percentiles:     []int{1, 5},
@@ -47,16 +44,14 @@ func DummyOptions(sort string) *options.Options {
 		BundleWhereIn:   false,
 		BundleValues:    false,
 		NoAbstract:      false,
+		LogLinePrefix:   "%m [%p]",
 	}
 }
 
 func DummyOverwrittenOptions(sort string) *options.Options {
-	sortOptions := stats.NewSortOptions()
-	sortOptions.SetAndValidate(sort)
-
 	return &options.Options{
 		File:        "/path/to/overwritten/file",
-		Sort:        sortOptions.SortType(),
+		Sort:        sort,
 		Reverse:     true,
 		Format:      "tsv",
 		Limit:       200,
@@ -67,7 +62,7 @@ func DummyOverwrittenOptions(sort string) *options.Options {
 			"INSERT .+",
 		},
 		Filters:         "Query matches 'SELECT'",
-		Output:          "query,avg",
+		Output:          "query,avg-query-time",
 		PosFile:         "/path/to/overwritten/pos",
 		NoSavePos:       true,
 		Percentiles:     []int{5, 9},
@@ -75,6 +70,7 @@ func DummyOverwrittenOptions(sort string) *options.Options {
 		BundleWhereIn:   true,
 		BundleValues:    true,
 		NoAbstract:      true,
+		LogLinePrefix:   "%m",
 	}
 }
 
@@ -102,6 +98,7 @@ pagination_limit: {{ .PaginationLimit }}
 bundle_where_in: {{ .BundleWhereIn }}
 bundle_values: {{ .BundleValues }}
 noabstract: {{ .NoAbstract }}
+log_line_prefix: "{{ .LogLinePrefix }}"
 `
 	t, err := template.New("dummy_config").Parse(configTmpl)
 	if err != nil {
