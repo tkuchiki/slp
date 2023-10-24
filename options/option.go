@@ -5,11 +5,13 @@ import (
 )
 
 const (
-	DefaultSortOption      = "count"
-	DefaultFormatOption    = "table"
-	DefaultLimitOption     = 5000
-	DefaultOutputOption    = "simple"
-	DefaultPaginationLimit = 100
+	DefaultSortOption                  = "count"
+	DefaultFormatOption                = "table"
+	DefaultLimitOption                 = 5000
+	DefaultOutputOption                = "simple"
+	DefaultPaginationLimit             = 100
+	DefaultLogLinePrefix               = "%m [%p]"
+	DefaultPrintOutputOptionsSeparator = "\n"
 )
 
 var DefaultPercentilesOption = []int{}
@@ -34,6 +36,8 @@ type Options struct {
 	BundleValues    bool     `mapstructure:"bundle_values"`
 	NoAbstract      bool     `mapstructure:"noabstract"`
 	PaginationLimit int      `mapstructure:"pagination_limit"`
+	LogLinePrefix   string   `mapstructure:"log_line_prefix"`
+	Separator       string
 }
 
 type Option func(*Options)
@@ -199,6 +203,22 @@ func PaginationLimit(i int) Option {
 	}
 }
 
+func LogLinePrefix(s string) Option {
+	return func(opts *Options) {
+		if s != "" {
+			opts.LogLinePrefix = s
+		}
+	}
+}
+
+func Separator(s string) Option {
+	return func(opts *Options) {
+		if s != "" {
+			opts.Separator = s
+		}
+	}
+}
+
 func NewOptions(opt ...Option) *Options {
 	options := &Options{
 		Sort:            DefaultSortOption,
@@ -207,6 +227,7 @@ func NewOptions(opt ...Option) *Options {
 		Output:          DefaultOutputOption,
 		Percentiles:     DefaultPercentilesOption,
 		PaginationLimit: DefaultPaginationLimit,
+		LogLinePrefix:   DefaultLogLinePrefix,
 	}
 
 	for _, o := range opt {
