@@ -1,7 +1,5 @@
 module github.com/tkuchiki/slp
 
-go 1.21.0
-
 require (
 	github.com/antonmedv/expr v1.9.0
 	github.com/google/go-cmp v0.5.9
@@ -11,7 +9,7 @@ require (
 	github.com/pingcap/tidb/parser v0.0.0-20231013125129-93a834a6bf8d
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.17.0
-	github.com/tkuchiki/go-pg-slowlog v0.1.1
+	github.com/tkuchiki/go-pg-slowlog v0.1.2
 	gopkg.in/yaml.v2 v2.4.0
 )
 
@@ -48,3 +46,5 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+go 1.21
