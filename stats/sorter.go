@@ -95,7 +95,8 @@ func (so *SortOptions) SetAndValidate(opt string) error {
 	}
 
 	var n int
-	_, err := fmt.Sscanf(opt, "p%d", &n)
+	var sortKey string
+	_, err := fmt.Sscanf(opt, "p%d-%s", &n, &sortKey)
 	if err != nil {
 		return err
 	}
@@ -104,7 +105,7 @@ func (so *SortOptions) SetAndValidate(opt string) error {
 		return fmt.Errorf("enum value must be one of count,query,max-(query-time|lock-time|rows-sent|rows-examined|rows-affected|bytes-sent),min-(query-time|lock-time|rows-sent|rows-examined|rows-affected|bytes-sent),avg-(query-time|lock-time|rows-sent|rows-examined|rows-affected|bytes-sent),sum-(query-time|lock-time|rows-sent|rows-examined|rows-affected|bytes-sent),pN(N = 0 ~ 100)-(query-time|lock-time|rows-sent|rows-examined|rows-affected|bytes-sent),stddev, got '%s'", opt)
 	}
 
-	so.sortType = so.options["pn"]
+	so.sortType = so.options[fmt.Sprintf("pn-%s", sortKey)]
 	so.percentile = n
 
 	return nil
@@ -146,7 +147,7 @@ func (qs *QueryStats) Sort(sortOptions *SortOptions, reverse bool) {
 		qs.SortAvgLockTime(reverse)
 	case SortPNLockTime:
 		qs.SortPNLockTime(reverse)
-		// rows sent
+	// rows sent
 	case SortMaxRowsSent:
 		qs.SortMaxRowsSent(reverse)
 	case SortMinRowsSent:

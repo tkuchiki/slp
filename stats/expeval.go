@@ -3,7 +3,6 @@ package stats
 import (
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/vm"
-	mlog "github.com/percona/go-mysql/log"
 )
 
 type ExpEval struct {
@@ -31,15 +30,15 @@ func NewExpEval(input string) (*ExpEval, error) {
 	}, nil
 }
 
-func (ee *ExpEval) Run(stat *mlog.Event) (bool, error) {
+func (ee *ExpEval) Run(metrics *QueryMetrics) (bool, error) {
 	env := &ExpEvalEnv{
-		Query:        stat.Query,
-		QueryTime:    stat.TimeMetrics["Query_time"],
-		LockTime:     stat.TimeMetrics["Lock_time"],
-		RowsSent:     stat.NumberMetrics["Rows_sent"],
-		RowsExamined: stat.NumberMetrics["Rows_examined"],
-		RowsAffected: stat.NumberMetrics["Rows_affected"],
-		BytesSent:    stat.NumberMetrics["Bytes_sent"],
+		Query:        metrics.Query,
+		QueryTime:    metrics.QueryTime,
+		LockTime:     metrics.LockTime,
+		RowsSent:     metrics.RowsSent,
+		RowsExamined: metrics.RowsExamined,
+		RowsAffected: metrics.RowsAffected,
+		BytesSent:    metrics.BytesSent,
 	}
 
 	output, err := expr.Run(ee.program, env)

@@ -5,22 +5,22 @@ import (
 
 	"github.com/pingcap/tidb/parser/ast"
 	"github.com/pingcap/tidb/parser/format"
-	"github.com/tkuchiki/slp/visitor"
+	"github.com/tkuchiki/slp/mysql/visitor"
 )
 
-type SQLAbstractor struct {
+type MySQLAbstractor struct {
 	v            *visitor.Visitor
 	restoreFlags format.RestoreFlags
 }
 
-func NewSQLAbstractor(bundleWhereIn, bundleInsertValues bool) *SQLAbstractor {
-	return &SQLAbstractor{
+func NewMySQLAbstractor(bundleWhereIn, bundleInsertValues bool) *MySQLAbstractor {
+	return &MySQLAbstractor{
 		v:            visitor.NewVisitor(bundleWhereIn, bundleInsertValues),
 		restoreFlags: format.RestoreNameBackQuotes | format.RestoreSpacesAroundBinaryOperation,
 	}
 }
 
-func (a *SQLAbstractor) Abstract(rootNode *ast.StmtNode) (string, error) {
+func (a *MySQLAbstractor) Abstract(rootNode *ast.StmtNode) (string, error) {
 	(*rootNode).Accept(a.v)
 
 	var sb strings.Builder

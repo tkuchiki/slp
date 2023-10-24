@@ -29,6 +29,10 @@ const (
 	flagBundleValues       = "bundle-values"
 	flagNoAbstract         = "noabstract"
 	flagPage               = "page"
+	flagLogLinePrefix      = "log-line-prefix"
+
+	// print-output-options
+	flagSeparator = "sep"
 )
 
 type flags struct {
@@ -126,6 +130,14 @@ func (f *flags) defineGlobalOptions(cmd *cobra.Command) {
 	f.defineConfig(cmd)
 }
 
+func (f *flags) definePGLogLinePrefix(cmd *cobra.Command) {
+	cmd.PersistentFlags().StringP(flagLogLinePrefix, "", options.DefaultLogLinePrefix, "The log_line_prefix of postgresql.conf")
+}
+
+func (f *flags) defineSeparator(cmd *cobra.Command) {
+	cmd.PersistentFlags().StringP(flagSeparator, "", options.DefaultPrintOutputOptionsSeparator, "Separator")
+}
+
 func (f *flags) defineProfileOptions(cmd *cobra.Command) {
 	f.defineFile(cmd)
 	f.defineDump(cmd)
@@ -165,6 +177,15 @@ func (f *flags) defineDiffOptions(cmd *cobra.Command) {
 	f.defineNoAbstract(cmd)
 }
 
+func (f *flags) definePGOptions(cmd *cobra.Command) {
+	f.definePGLogLinePrefix(cmd)
+}
+
+func (f *flags) definePrintOutputOptionsOptions(cmd *cobra.Command) {
+	f.defineSeparator(cmd)
+	f.definePercentiles(cmd)
+}
+
 func (f *flags) bindFlags(cmd *cobra.Command) {
 	viper.BindPFlag("file", cmd.PersistentFlags().Lookup(flagFile))
 	viper.BindPFlag("dump", cmd.PersistentFlags().Lookup(flagDump))
@@ -182,6 +203,7 @@ func (f *flags) bindFlags(cmd *cobra.Command) {
 	viper.BindPFlag("bundle_where_in", cmd.PersistentFlags().Lookup(flagBundleWhereIn))
 	viper.BindPFlag("bundle_values", cmd.PersistentFlags().Lookup(flagBundleValues))
 	viper.BindPFlag("noabstract", cmd.PersistentFlags().Lookup(flagNoAbstract))
+	viper.BindPFlag("log_line_prefix", cmd.PersistentFlags().Lookup(flagLogLinePrefix))
 }
 
 func (f *flags) createOptionsFromConfig(cmd *cobra.Command) (*options.Options, error) {
@@ -227,7 +249,6 @@ func (f *flags) createOptionsFromConfig(cmd *cobra.Command) (*options.Options, e
 	if err := f.sortOptions.SetAndValidate(opts.Sort); err != nil {
 		return nil, err
 	}
-	opts.Sort = f.sortOptions.SortType()
 
 	return opts, nil
 }
@@ -415,8 +436,42 @@ func (f *flags) setDiffOptions(cmd *cobra.Command, opts *options.Options) (*opti
 	return f.setOptions(cmd, opts, _flags)
 }
 
-// slp
-func (f *flags) createOptions(cmd *cobra.Command) (*options.Options, error) {
+func (f *flags) setPGOptions(cmd *cobra.Command, opts *options.Options) (*options.Options, error) {
+	logLinePrefix, err := cmd.PersistentFlags().GetString(flagLogLinePrefix)
+	if err != nil {
+		return nil, err
+	}
+	opts = options.SetOptions(opts, options.LogLinePrefix(logLinePrefix))
+
+	return opts, nil
+}
+
+func (f *flags) setPrintOutputOptionsOptions(cmd *cobra.Command, opts *options.Options) (*options.Options, error) {
+	sep, err := cmd.PersistentFlags().GetString(flagSeparator)
+	if err != nil {
+		return nil, err
+	}
+	opts = options.SetOptions(opts, options.Separator(sep))
+
+	_flags := []string{
+		flagPercentiles,
+	}
+
+	return f.setOptions(cmd, opts, _flags)
+}
+
+// slp my
+func (f *flags) createMySQLOptions(cmd *cobra.Command) (*options.Options, error) {
+	if f.config != "" {
+		f.bindFlags(cmd)
+		return f.createOptionsFromConfig(cmd)
+	}
+
+	return f.setProfileOptions(cmd, options.NewOptions())
+}
+
+// slp pg
+func (f *flags) createPGOptions(cmd *cobra.Command) (*options.Options, error) {
 	if f.config != "" {
 		f.bindFlags(cmd)
 		return f.createOptionsFromConfig(cmd)
@@ -427,7 +482,7 @@ func (f *flags) createOptions(cmd *cobra.Command) (*options.Options, error) {
 		return nil, err
 	}
 
-	return f.setProfileOptions(cmd, opts)
+	return f.setPGOptions(cmd, opts)
 }
 
 // slp diff
@@ -438,4 +493,9 @@ func (f *flags) createDiffOptions(cmd *cobra.Command) (*options.Options, error) 
 	}
 
 	return f.setDiffOptions(cmd, options.NewOptions())
+}
+
+// slp (my|pg) print-output-options
+func (f *flags) createPrintOutputOptionsOptions(cmd *cobra.Command) (*options.Options, error) {
+	return f.setPrintOutputOptionsOptions(cmd, options.NewOptions())
 }
