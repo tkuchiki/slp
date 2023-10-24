@@ -3,13 +3,14 @@ package abstractor
 import (
 	"testing"
 
+	"github.com/tkuchiki/slp/mysql/parser/sqlparser"
+
 	"github.com/google/go-cmp/cmp"
-	"github.com/tkuchiki/slp/parser/sqlparser"
 )
 
-func TestSQLAbstractor_Abstract(t *testing.T) {
-	abst := NewSQLAbstractor(false, false)
-	parser := sqlparser.NewSQLParser()
+func TestMySQLAbstractor_Abstract(t *testing.T) {
+	abst := NewMySQLAbstractor(false, false)
+	parser := sqlparser.NewMySQLSQLParser()
 
 	cases := []struct {
 		original string

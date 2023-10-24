@@ -75,7 +75,7 @@ func newDiffCmd(flags *flags) *cobra.Command {
 
 			printOptions := stats.NewPrintOptions(opts.NoHeaders, opts.ShowFooters, opts.PaginationLimit)
 			printer := stats.NewPrinter(os.Stdout, opts.Output, opts.Format, opts.Percentiles, printOptions)
-			if err = printer.Validate(); err != nil {
+			if err = printer.Validate(opts.Sort); err != nil {
 				return err
 			}
 

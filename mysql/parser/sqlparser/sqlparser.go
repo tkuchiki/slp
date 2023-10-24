@@ -6,17 +6,17 @@ import (
 	_ "github.com/pingcap/tidb/parser/test_driver"
 )
 
-type SQLParser struct {
+type MySQLSQLParser struct {
 	p *mparser.Parser
 }
 
-func NewSQLParser() *SQLParser {
-	return &SQLParser{
+func NewMySQLSQLParser() *MySQLSQLParser {
+	return &MySQLSQLParser{
 		p: mparser.New(),
 	}
 }
 
-func (s *SQLParser) Parse(sql string) (*mast.StmtNode, error) {
+func (s *MySQLSQLParser) Parse(sql string) (*mast.StmtNode, error) {
 	stmtNodes, _, err := s.p.Parse(sql, "", "")
 	if err != nil {
 		return nil, err

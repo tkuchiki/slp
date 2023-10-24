@@ -8,7 +8,6 @@ import (
 	"sort"
 	"sync"
 
-	mlog "github.com/percona/go-mysql/log"
 	slperrors "github.com/tkuchiki/slp/errors"
 	"github.com/tkuchiki/slp/helper"
 	"github.com/tkuchiki/slp/options"
@@ -118,8 +117,8 @@ func (qs *QueryStats) InitFilter(options *options.Options) error {
 	return qs.filter.Init()
 }
 
-func (qs *QueryStats) DoFilter(qstat *mlog.Event) (bool, error) {
-	err := qs.filter.Do(qstat)
+func (qs *QueryStats) DoFilter(metrics *QueryMetrics) (bool, error) {
+	err := qs.filter.Do(metrics)
 	if err != nil {
 		if errors.Is(err, slperrors.SkipReadLineErr) {
 			return false, nil
@@ -384,7 +383,7 @@ func (qs *QueryStat) StrStddevRowsExamined() string {
 	return fmt.Sprintf("%.6f", qs.RowsExamined.Stddev(qs.Cnt))
 }
 
-//	rows_affected
+// rows_affected
 func (qs *QueryStat) MaxRowsAffected() uint64 {
 	return qs.RowsAffected.Max
 }
@@ -433,7 +432,7 @@ func (qs *QueryStat) StrStddevRowsAffected() string {
 	return fmt.Sprintf("%.6f", qs.RowsAffected.Stddev(qs.Cnt))
 }
 
-//	bytes_sent"
+// bytes_sent"
 func (qs *QueryStat) MaxBytesSent() uint64 {
 	return qs.BytesSent.Max
 }

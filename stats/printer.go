@@ -26,9 +26,9 @@ var outputKeywords = map[keywordMode][]string{
 
 var statsKeyPrefixes = []string{"min", "max", "sum", "avg"}
 
-func OutputKeywords(percentiles []int) []string {
+func OutputKeywords(_outputKeywords []string, percentiles []int) []string {
 	var s []string
-	for _, key := range outputKeywords[allMode] {
+	for _, key := range _outputKeywords {
 		if key == "count" || key == "query" {
 			s = append(s, key)
 			continue
@@ -44,6 +44,14 @@ func OutputKeywords(percentiles []int) []string {
 	}
 
 	return s
+}
+
+func MySQLOutputKeywords(percentiles []int) []string {
+	return OutputKeywords(outputKeywords[allMode], percentiles)
+}
+
+func PGOutputKeywords(percentiles []int) []string {
+	return OutputKeywords(outputKeywords[simpleMode], percentiles)
 }
 
 func keywords(percentiles []int, keys []string) []string {
@@ -201,7 +209,7 @@ func NewPrinter(w io.Writer, val, format string, percentiles []int, printOptions
 	return p
 }
 
-func (p *Printer) Validate() error {
+func (p *Printer) Validate(sortKey string) error {
 	if p.all {
 		return nil
 	}
@@ -215,6 +223,18 @@ func (p *Printer) Validate() error {
 
 	if len(invalids) > 0 {
 		return fmt.Errorf("invalid keywords: %s", strings.Join(invalids, ","))
+	}
+
+	var hasNotInvalidSortKey bool
+	for _, key := range p.keywords {
+		if sortKey == key {
+			hasNotInvalidSortKey = true
+			break
+		}
+	}
+
+	if !hasNotInvalidSortKey {
+		return fmt.Errorf("invalid sort key: %s. The sort key must be chosen from the --output=%s", sortKey, strings.Join(p.keywords, ","))
 	}
 
 	return nil

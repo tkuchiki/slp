@@ -1,7 +1,6 @@
 package stats
 
 import (
-	mlog "github.com/percona/go-mysql/log"
 	"github.com/tkuchiki/slp/errors"
 	"github.com/tkuchiki/slp/options"
 )
@@ -38,13 +37,13 @@ func (f *Filter) isEnable() bool {
 	return false
 }
 
-func (f *Filter) Do(stat *mlog.Event) error {
+func (f *Filter) Do(metrics *QueryMetrics) error {
 	if !f.isEnable() {
 		return nil
 	}
 
 	if f.expeval != nil {
-		matched, err := f.expeval.Run(stat)
+		matched, err := f.expeval.Run(metrics)
 		if err != nil {
 			return err
 		}
