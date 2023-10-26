@@ -4,17 +4,31 @@ on:
     tags:
     - "v[0-9]+.[0-9]+.[0-9]+"
 jobs:
-  goreleaser:
+  build_and_release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup Go
-        uses: actions/setup-go@v4
+      - name: Build
+        uses: crazy-max/ghaction-xgo@v3
         with:
-          go-version-file: go.mod
+          xgo_version: latest
+          go_version: 1.21
+          dest: build
+          prefix: slp
+          pkg: ./cmd/slp/
+          targets: windows/amd64,windows/arm64,linux/amd64,linux/arm64,linux/mips64,linux/mips64le,darwin/amd64,darwin/arm64,freebsd/amd64,freebsd/arm64,netbsd/amd64,netbsd/arm64,openbsd/amd64,openbsd/arm64,solaris/amd64,solaris/arm64,
+          v: true
+          x: false
+          race: false
+          ldflags: -s -w
+          buildmode: default
+          trimpath: true
+       - name: Archive binaries
+        run: |
+          bash ./scripts/ci/archive.sh "${GITHUB_REF#refs/*/}"
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v4
         with:

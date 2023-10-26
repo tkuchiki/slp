@@ -19,3 +19,4 @@ dist
 cmd/slp/slp
 from.yaml
 to.yaml
+/build/
