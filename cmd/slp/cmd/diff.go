@@ -85,6 +85,8 @@ func newDiffCmd(flags *flags) *cobra.Command {
 		},
 	}
 
+	flags.defineDiffOptions(diffCmd)
+
 	diffCmd.Flags().SortFlags = false
 	diffCmd.PersistentFlags().SortFlags = false
 	diffCmd.InheritedFlags().SortFlags = false
