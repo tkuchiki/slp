@@ -22,4 +22,4 @@ for file in ./${bin}-* ; do
     rm -rf ${dir}
 done
 
-shasum -a 256 *.zip > ${bin}_${version}_checksums.txt
+shasum -a 256 *.zip *.tar.gz > ${bin}_${version}_checksums.txt
