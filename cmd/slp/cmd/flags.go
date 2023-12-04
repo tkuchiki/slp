@@ -172,9 +172,6 @@ func (f *flags) defineDiffOptions(cmd *cobra.Command) {
 	f.defineFilters(cmd)
 	f.definePercentiles(cmd)
 	f.definePage(cmd)
-	f.defineBundleWhereIN(cmd)
-	f.defineBundleValues(cmd)
-	f.defineNoAbstract(cmd)
 }
 
 func (f *flags) definePGOptions(cmd *cobra.Command) {
