@@ -1,0 +1,268 @@
+- query: DELETE FROM `t2` WHERE 'S' < `c1_date` OR `c2` NOT IN (SELECT `c3` FROM `t3`)
+  count: 1
+  query_time:
+    max: 0.369618
+    min: 0.369618
+    sum: 0.369618
+    usepercentile: false
+    percentiles: []
+  lock_time:
+    max: 2e-06
+    min: 2e-06
+    sum: 2e-06
+    usepercentile: false
+    percentiles: []
+  rows_sent:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+  rows_examined:
+    max: 258959
+    min: 258959
+    sum: 258959
+    usepercentile: false
+    percentiles: []
+  rows_affected:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+  bytes_sent:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+- query: DELETE FROM `t4` WHERE `c4` NOT IN (SELECT `c1` FROM `t1`)
+  count: 1
+  query_time:
+    max: 3.148949
+    min: 3.148949
+    sum: 3.148949
+    usepercentile: false
+    percentiles: []
+  lock_time:
+    max: 4e-06
+    min: 4e-06
+    sum: 4e-06
+    usepercentile: false
+    percentiles: []
+  rows_sent:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+  rows_examined:
+    max: 20720537
+    min: 20720537
+    sum: 20720537
+    usepercentile: false
+    percentiles: []
+  rows_affected:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+  bytes_sent:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+- query: UPDATE `t1` SET `c1_count`=(SELECT COUNT(N) AS `cnt` FROM `t2` WHERE `c3_id`
+    = `t3`.`id`)
+  count: 1
+  query_time:
+    max: 6.504247
+    min: 6.504247
+    sum: 6.504247
+    usepercentile: false
+    percentiles: []
+  lock_time:
+    max: 3e-06
+    min: 3e-06
+    sum: 3e-06
+    usepercentile: false
+    percentiles: []
+  rows_sent:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+  rows_examined:
+    max: 10486804
+    min: 10486804
+    sum: 10486804
+    usepercentile: false
+    percentiles: []
+  rows_affected:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+  bytes_sent:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+- query: INSERT INTO `t2` (`c2_id`,`c2_string`,`c2_date`) VALUES (N,'S','S')
+  count: 1
+  query_time:
+    max: 0.010498
+    min: 0.010498
+    sum: 0.010498
+    usepercentile: false
+    percentiles: []
+  lock_time:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+  rows_sent:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+  rows_examined:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+  rows_affected:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+  bytes_sent:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+- query: INSERT INTO `t2` (`c2_id`,`c2_string`,`c2_date`) VALUES (N,'S','S'),(N,'S','S')
+  count: 1
+  query_time:
+    max: 0.010498
+    min: 0.010498
+    sum: 0.010498
+    usepercentile: false
+    percentiles: []
+  lock_time:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+  rows_sent:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+  rows_examined:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+  rows_affected:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+  bytes_sent:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+- query: SELECT * FROM `t5` WHERE `c5_id` IN ('S','S','S')
+  count: 1
+  query_time:
+    max: 0.010753
+    min: 0.010753
+    sum: 0.010753
+    usepercentile: false
+    percentiles: []
+  lock_time:
+    max: 1e-06
+    min: 1e-06
+    sum: 1e-06
+    usepercentile: false
+    percentiles: []
+  rows_sent:
+    max: 67
+    min: 67
+    sum: 67
+    usepercentile: false
+    percentiles: []
+  rows_examined:
+    max: 67
+    min: 67
+    sum: 67
+    usepercentile: false
+    percentiles: []
+  rows_affected:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+  bytes_sent:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+- query: SELECT `t1`.`id` FROM `t1` JOIN `t2` ON `t2`.`t1_id` = `t1`.`id` WHERE `t2`.`t1_id`
+    = 'S' ORDER BY `t2`.`t1_id`
+  count: 1
+  query_time:
+    max: 0.020219
+    min: 0.020219
+    sum: 0.020219
+    usepercentile: false
+    percentiles: []
+  lock_time:
+    max: 1e-06
+    min: 1e-06
+    sum: 1e-06
+    usepercentile: false
+    percentiles: []
+  rows_sent:
+    max: 58
+    min: 58
+    sum: 58
+    usepercentile: false
+    percentiles: []
+  rows_examined:
+    max: 174
+    min: 174
+    sum: 174
+    usepercentile: false
+    percentiles: []
+  rows_affected:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
+  bytes_sent:
+    max: 0
+    min: 0
+    sum: 0
+    usepercentile: false
+    percentiles: []
