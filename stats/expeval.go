@@ -1,8 +1,11 @@
 package stats
 
 import (
+	"time"
+
 	"github.com/antonmedv/expr"
 	"github.com/antonmedv/expr/vm"
+	sqlv1 "github.com/tkuchiki/logschema/sql/v1"
 )
 
 type ExpEval struct {
@@ -30,15 +33,15 @@ func NewExpEval(input string) (*ExpEval, error) {
 	}, nil
 }
 
-func (ee *ExpEval) Run(metrics *QueryMetrics) (bool, error) {
+func (ee *ExpEval) Run(record *sqlv1.Query) (bool, error) {
 	env := &ExpEvalEnv{
-		Query:        metrics.Query,
-		QueryTime:    metrics.QueryTime,
-		LockTime:     metrics.LockTime,
-		RowsSent:     metrics.RowsSent,
-		RowsExamined: metrics.RowsExamined,
-		RowsAffected: metrics.RowsAffected,
-		BytesSent:    metrics.BytesSent,
+		Query:        record.Data.Fingerprint.Value,
+		QueryTime:    float64(record.DurationNano) / float64(time.Second),
+		LockTime:     durationSeconds(record.Data.LockDurationNano),
+		RowsSent:     decimalUint64(record.Data.RowsSent),
+		RowsExamined: decimalUint64(record.Data.RowsExamined),
+		RowsAffected: decimalUint64(record.Data.RowsAffected),
+		BytesSent:    decimalUint64(record.Data.BytesSent),
 	}
 
 	output, err := expr.Run(ee.program, env)

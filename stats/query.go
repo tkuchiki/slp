@@ -7,38 +7,41 @@ import (
 	"regexp"
 	"sort"
 	"sync"
+	"time"
 
+	corev1 "github.com/tkuchiki/logschema/core/v1"
+	sqlv1 "github.com/tkuchiki/logschema/sql/v1"
 	slperrors "github.com/tkuchiki/slp/errors"
 	"github.com/tkuchiki/slp/helper"
 	"github.com/tkuchiki/slp/options"
 )
 
-type hints struct {
+type queryStatIndex struct {
 	values map[string]int
 	len    int
 	mu     sync.Mutex
 }
 
-func newHints() *hints {
-	return &hints{
+func newQueryStatIndex() *queryStatIndex {
+	return &queryStatIndex{
 		values: make(map[string]int),
 	}
 }
 
-func (h *hints) loadOrStore(key string) int {
-	h.mu.Lock()
-	defer h.mu.Unlock()
-	_, ok := h.values[key]
+func (index *queryStatIndex) loadOrStore(key string) int {
+	index.mu.Lock()
+	defer index.mu.Unlock()
+	_, ok := index.values[key]
 	if !ok {
-		h.values[key] = h.len
-		h.len++
+		index.values[key] = index.len
+		index.len++
 	}
 
-	return h.values[key]
+	return index.values[key]
 }
 
 type QueryStats struct {
-	hints                     *hints
+	index                     *queryStatIndex
 	stats                     queryStats
 	useQueryTimePercentile    bool
 	useLockTimePercentile     bool
@@ -52,20 +55,21 @@ type QueryStats struct {
 	queryMatchingGroups       []*regexp.Regexp
 }
 
-func NewQueryStats(useQueryTimePercentile, useLockTimePercentile, useRowsSentPercentile, useRowsExaminedPercentile, useRowsAffectedPercentile, useBytesSent bool) *QueryStats {
+func NewQueryStats(useQueryTimePercentile, useLockTimePercentile, useRowsSentPercentile, useRowsExaminedPercentile, useRowsAffectedPercentile, useBytesSentPercentile bool) *QueryStats {
 	return &QueryStats{
-		hints:                     newHints(),
+		index:                     newQueryStatIndex(),
 		stats:                     make([]*QueryStat, 0),
 		useQueryTimePercentile:    useQueryTimePercentile,
 		useLockTimePercentile:     useLockTimePercentile,
 		useRowsSentPercentile:     useRowsSentPercentile,
 		useRowsExaminedPercentile: useRowsExaminedPercentile,
 		useRowsAffectedPercentile: useRowsAffectedPercentile,
-		useBytesSentPercentile:    useBytesSent,
+		useBytesSentPercentile:    useBytesSentPercentile,
 	}
 }
 
-func (qs *QueryStats) Set(query string, querytime, lockTime float64, rowsSent, rowsExamined, rowsAffected, bytesSent uint64) {
+func (qs *QueryStats) Observe(record *sqlv1.Query) {
+	query := record.Data.Fingerprint.Value
 	if len(qs.queryMatchingGroups) > 0 {
 		for _, re := range qs.queryMatchingGroups {
 			if ok := re.Match([]byte(query)); ok {
@@ -76,21 +80,21 @@ func (qs *QueryStats) Set(query string, querytime, lockTime float64, rowsSent, r
 		}
 	}
 
-	idx := qs.hints.loadOrStore(query)
+	idx := qs.index.loadOrStore(query)
 
 	if idx >= len(qs.stats) {
 		qs.stats = append(qs.stats, newQueryStat(query, qs.useQueryTimePercentile, qs.useLockTimePercentile, qs.useRowsSentPercentile, qs.useRowsExaminedPercentile, qs.useRowsAffectedPercentile, qs.useBytesSentPercentile))
 	}
 
-	qs.stats[idx].Set(querytime, lockTime, rowsSent, rowsExamined, rowsAffected, bytesSent)
+	qs.stats[idx].Observe(record)
 }
 
 func (qs *QueryStats) Stats() []*QueryStat {
 	return qs.stats
 }
 
-func (qs *QueryStats) CountUris() int {
-	return qs.hints.len
+func (qs *QueryStats) CountQueries() int {
+	return qs.index.len
 }
 
 func (qs *QueryStats) SetOptions(options *options.Options) {
@@ -117,8 +121,8 @@ func (qs *QueryStats) InitFilter(options *options.Options) error {
 	return qs.filter.Init()
 }
 
-func (qs *QueryStats) DoFilter(metrics *QueryMetrics) (bool, error) {
-	err := qs.filter.Do(metrics)
+func (qs *QueryStats) DoFilter(record *sqlv1.Query) (bool, error) {
+	err := qs.filter.Do(record)
 	if err != nil {
 		if errors.Is(err, slperrors.SkipReadLineErr) {
 			return false, nil
@@ -157,7 +161,7 @@ type QueryStat struct {
 
 type queryStats []*QueryStat
 
-func newQueryStat(query string, useQueryTimePercentile, useLockTimePercentile, useRowsSentPercentile, useRowsExaminedPercentile, useRowsAffectedPercentile, useBytesSent bool) *QueryStat {
+func newQueryStat(query string, useQueryTimePercentile, useLockTimePercentile, useRowsSentPercentile, useRowsExaminedPercentile, useRowsAffectedPercentile, useBytesSentPercentile bool) *QueryStat {
 	return &QueryStat{
 		Query:        query,
 		QueryTime:    newTimeStats(useQueryTimePercentile),
@@ -165,18 +169,44 @@ func newQueryStat(query string, useQueryTimePercentile, useLockTimePercentile, u
 		RowsSent:     newNumberStats(useRowsSentPercentile),
 		RowsExamined: newNumberStats(useRowsExaminedPercentile),
 		RowsAffected: newNumberStats(useRowsAffectedPercentile),
-		BytesSent:    newNumberStats(useBytesSent),
+		BytesSent:    newNumberStats(useBytesSentPercentile),
 	}
 }
 
-func (qs *QueryStat) Set(queryTime, lockTime float64, rowsSent, rowsExamined, rowsAffected, bytesSent uint64) {
+func (qs *QueryStat) Observe(record *sqlv1.Query) {
 	qs.Cnt++
-	qs.QueryTime.Set(queryTime)
-	qs.LockTime.Set(lockTime)
-	qs.RowsSent.Set(rowsSent)
-	qs.RowsExamined.Set(rowsExamined)
-	qs.RowsAffected.Set(rowsAffected)
-	qs.BytesSent.Set(bytesSent)
+	qs.QueryTime.Set(float64(record.DurationNano) / float64(time.Second))
+	if record.Data.LockDurationNano != nil {
+		qs.LockTime.Set(float64(*record.Data.LockDurationNano) / float64(time.Second))
+	}
+	if record.Data.RowsSent != nil {
+		qs.RowsSent.Set(uint64(*record.Data.RowsSent))
+	}
+	if record.Data.RowsExamined != nil {
+		qs.RowsExamined.Set(uint64(*record.Data.RowsExamined))
+	}
+	if record.Data.RowsAffected != nil {
+		qs.RowsAffected.Set(uint64(*record.Data.RowsAffected))
+	}
+	if record.Data.BytesSent != nil {
+		qs.BytesSent.Set(uint64(*record.Data.BytesSent))
+	}
+}
+
+func durationSeconds(value *corev1.DecimalUint64) float64 {
+	if value == nil {
+		return 0
+	}
+
+	return float64(*value) / float64(time.Second)
+}
+
+func decimalUint64(value *corev1.DecimalUint64) uint64 {
+	if value == nil {
+		return 0
+	}
+
+	return uint64(*value)
 }
 
 func (qs *QueryStat) Count() int {
@@ -187,7 +217,6 @@ func (qs *QueryStat) StrCount() string {
 	return fmt.Sprint(qs.Cnt)
 }
 
-// query_time
 func (qs *QueryStat) MaxQueryTime() float64 {
 	return qs.QueryTime.Max
 }
@@ -236,7 +265,6 @@ func (qs *QueryStat) StrStddevQueryTime() string {
 	return fmt.Sprintf("%.6f", qs.QueryTime.Stddev(qs.Cnt))
 }
 
-// lock_time
 func (qs *QueryStat) MaxLockTime() float64 {
 	return qs.LockTime.Max
 }
@@ -285,7 +313,6 @@ func (qs *QueryStat) StrStddevLockTime() string {
 	return fmt.Sprintf("%.6f", qs.LockTime.Stddev(qs.Cnt))
 }
 
-// rows_sent
 func (qs *QueryStat) MaxRowsSent() uint64 {
 	return qs.RowsSent.Max
 }
@@ -334,7 +361,6 @@ func (qs *QueryStat) StrStddevRowsSent() string {
 	return fmt.Sprintf("%.6f", qs.RowsSent.Stddev(qs.Cnt))
 }
 
-// rows_examined
 func (qs *QueryStat) MaxRowsExamined() uint64 {
 	return qs.RowsExamined.Max
 }
@@ -383,7 +409,6 @@ func (qs *QueryStat) StrStddevRowsExamined() string {
 	return fmt.Sprintf("%.6f", qs.RowsExamined.Stddev(qs.Cnt))
 }
 
-// rows_affected
 func (qs *QueryStat) MaxRowsAffected() uint64 {
 	return qs.RowsAffected.Max
 }
@@ -432,7 +457,6 @@ func (qs *QueryStat) StrStddevRowsAffected() string {
 	return fmt.Sprintf("%.6f", qs.RowsAffected.Stddev(qs.Cnt))
 }
 
-// bytes_sent"
 func (qs *QueryStat) MaxBytesSent() uint64 {
 	return qs.BytesSent.Max
 }
@@ -505,21 +529,26 @@ type timeStats struct {
 	Sum           float64 `yaml:"sum"`
 	UsePercentile bool
 	Percentiles   []float64 `yaml:"percentiles"`
+	count         int
+	tracksCount   bool
 }
 
 func newTimeStats(usePercentile bool) *timeStats {
 	return &timeStats{
 		UsePercentile: usePercentile,
 		Percentiles:   make([]float64, 0),
+		tracksCount:   true,
 	}
 }
 
 func (ts *timeStats) Set(val float64) {
+	ts.count++
+
 	if ts.Max < val {
 		ts.Max = val
 	}
 
-	if ts.Min >= val || ts.Min == 0 {
+	if ts.count == 1 || ts.Min > val {
 		ts.Min = val
 	}
 
@@ -531,15 +560,20 @@ func (ts *timeStats) Set(val float64) {
 }
 
 func (ts *timeStats) Avg(cnt int) float64 {
+	cnt = ts.sampleCount(cnt)
+	if cnt == 0 {
+		return 0
+	}
+
 	return ts.Sum / float64(cnt)
 }
 
 func (ts *timeStats) PN(cnt, n int) float64 {
-	if !ts.UsePercentile {
+	if !ts.UsePercentile || len(ts.Percentiles) == 0 {
 		return 0.0
 	}
 
-	plen := percentRank(cnt, n)
+	plen := percentRank(len(ts.Percentiles), n)
 	ts.Sort()
 	return ts.Percentiles[plen]
 }
@@ -547,6 +581,10 @@ func (ts *timeStats) PN(cnt, n int) float64 {
 func (ts *timeStats) Stddev(cnt int) float64 {
 	if !ts.UsePercentile {
 		return 0.0
+	}
+	cnt = ts.sampleCount(cnt)
+	if cnt == 0 {
+		return 0
 	}
 
 	var stdd float64
@@ -566,27 +604,40 @@ func (ts *timeStats) Sort() {
 	})
 }
 
+func (ts *timeStats) sampleCount(fallback int) int {
+	if ts.tracksCount {
+		return ts.count
+	}
+
+	return fallback
+}
+
 type numberStats struct {
 	Max           uint64 `yaml:"max"`
 	Min           uint64 `yaml:"min"`
 	Sum           uint64 `yaml:"sum"`
 	UsePercentile bool
 	Percentiles   []uint64 `yaml:"percentiles"`
+	count         int
+	tracksCount   bool
 }
 
 func newNumberStats(usePercentile bool) *numberStats {
 	return &numberStats{
 		UsePercentile: usePercentile,
 		Percentiles:   make([]uint64, 0),
+		tracksCount:   true,
 	}
 }
 
 func (ns *numberStats) Set(val uint64) {
+	ns.count++
+
 	if ns.Max < val {
 		ns.Max = val
 	}
 
-	if ns.Min >= val || ns.Min == 0.0 {
+	if ns.count == 1 || ns.Min > val {
 		ns.Min = val
 	}
 
@@ -598,15 +649,20 @@ func (ns *numberStats) Set(val uint64) {
 }
 
 func (ns *numberStats) Avg(cnt int) float64 {
+	cnt = ns.sampleCount(cnt)
+	if cnt == 0 {
+		return 0
+	}
+
 	return float64(ns.Sum) / float64(cnt)
 }
 
 func (ns *numberStats) PN(cnt, n int) uint64 {
-	if !ns.UsePercentile {
+	if !ns.UsePercentile || len(ns.Percentiles) == 0 {
 		return 0.0
 	}
 
-	plen := percentRank(cnt, n)
+	plen := percentRank(len(ns.Percentiles), n)
 	ns.Sort()
 	return ns.Percentiles[plen]
 }
@@ -614,6 +670,10 @@ func (ns *numberStats) PN(cnt, n int) uint64 {
 func (ns *numberStats) Stddev(cnt int) float64 {
 	if !ns.UsePercentile {
 		return 0.0
+	}
+	cnt = ns.sampleCount(cnt)
+	if cnt == 0 {
+		return 0
 	}
 
 	var stdd float64
@@ -631,4 +691,12 @@ func (ns *numberStats) Sort() {
 	sort.Slice(ns.Percentiles, func(i, j int) bool {
 		return ns.Percentiles[i] < ns.Percentiles[j]
 	})
+}
+
+func (ns *numberStats) sampleCount(fallback int) int {
+	if ns.tracksCount {
+		return ns.count
+	}
+
+	return fallback
 }

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	slowlogparser "github.com/tkuchiki/go-pg-slowlog/parser"
+	sqlv1 "github.com/tkuchiki/logschema/sql/v1"
 	"github.com/tkuchiki/slp/abstractor"
 	"github.com/tkuchiki/slp/options"
 	"github.com/tkuchiki/slp/stats"
@@ -36,7 +37,7 @@ func (p *PGProfiler) Profile(qstats *stats.QueryStats) error {
 	go p.slowp.Start()
 
 	for logEntry := range p.slowp.LogEntryChan() {
-		var query string
+		query := logEntry.Statement
 		if !p.opts.NoAbstract {
 			q, err := p.abst.Abstract(logEntry.Statement)
 			if err != nil {
@@ -46,12 +47,12 @@ func (p *PGProfiler) Profile(qstats *stats.QueryStats) error {
 			query = q
 		}
 
-		metrics := &stats.QueryMetrics{
-			Query:     query,
-			QueryTime: float64(logEntry.Duration) / float64(time.Second),
+		record, err := newQueryRecord("postgresql", query, !p.opts.NoAbstract, float64(logEntry.Duration)/float64(time.Second), sqlv1.QueryData{})
+		if err != nil {
+			continue
 		}
 
-		matched, err := qstats.DoFilter(metrics)
+		matched, err := qstats.DoFilter(record)
 		if err != nil {
 			return err
 		}
@@ -60,9 +61,9 @@ func (p *PGProfiler) Profile(qstats *stats.QueryStats) error {
 			continue
 		}
 
-		qstats.Set(query, metrics.QueryTime, 0, 0, 0, 0, 0)
+		qstats.Observe(record)
 
-		if qstats.CountUris() > p.opts.Limit {
+		if qstats.CountQueries() > p.opts.Limit {
 			return fmt.Errorf("Too many Queries (%d or less)", p.opts.Limit)
 		}
 	}
