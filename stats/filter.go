@@ -1,6 +1,7 @@
 package stats
 
 import (
+	sqlv1 "github.com/tkuchiki/logschema/sql/v1"
 	"github.com/tkuchiki/slp/errors"
 	"github.com/tkuchiki/slp/options"
 )
@@ -30,20 +31,16 @@ func (f *Filter) Init() error {
 }
 
 func (f *Filter) isEnable() bool {
-	if f.expeval != nil {
-		return true
-	}
-
-	return false
+	return f.expeval != nil
 }
 
-func (f *Filter) Do(metrics *QueryMetrics) error {
+func (f *Filter) Do(record *sqlv1.Query) error {
 	if !f.isEnable() {
 		return nil
 	}
 
 	if f.expeval != nil {
-		matched, err := f.expeval.Run(metrics)
+		matched, err := f.expeval.Run(record)
 		if err != nil {
 			return err
 		}
