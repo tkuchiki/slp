@@ -1,6 +1,7 @@
 package stats
 
 import (
+	"bytes"
 	"testing"
 	"time"
 
@@ -69,6 +70,41 @@ func TestNumberStatsPreservesMeasuredZeroAsMinimum(t *testing.T) {
 
 	if got := stats.Min; got != 0 {
 		t.Fatalf("minimum = %d, want 0", got)
+	}
+}
+
+func TestQueryStatsDumpPreservesMissingMetricSampleCount(t *testing.T) {
+	withMetrics := testQueryRecord(t)
+	withoutMetrics, err := sqlv1.NewQuery(250_000_000, corev1.Source{Kind: corev1.SourceOther}, sqlv1.QueryData{
+		DBSystem:     "mysql",
+		QuerySummary: stringPointer("SELECT * FROM users WHERE id = N"),
+		Fingerprint:  sqlv1.Fingerprint{Value: "SELECT * FROM users WHERE id = N", Algorithm: "slp.mysql.abstract", Version: "1"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	before := NewQueryStats(false, false, false, false, false, false)
+	before.Observe(&withMetrics)
+	before.Observe(&withoutMetrics)
+
+	var dump bytes.Buffer
+	if err := before.DumpStats(&dump); err != nil {
+		t.Fatal(err)
+	}
+	after := NewQueryStats(false, false, false, false, false, false)
+	if err := after.LoadStats(&dump); err != nil {
+		t.Fatal(err)
+	}
+
+	if got, want := before.Stats()[0].AvgLockTime(), 0.005; got != want {
+		t.Fatalf("lock time average before dump = %v, want %v", got, want)
+	}
+	if got, want := after.Stats()[0].AvgLockTime(), 0.005; got != want {
+		t.Fatalf("lock time average after load = %v, want %v", got, want)
+	}
+	if got, want := after.Stats()[0].AvgRowsExamined(), float64(42); got != want {
+		t.Fatalf("rows examined average after load = %v, want %v", got, want)
 	}
 }
 

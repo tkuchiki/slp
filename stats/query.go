@@ -529,26 +529,34 @@ type timeStats struct {
 	Sum           float64 `yaml:"sum"`
 	UsePercentile bool
 	Percentiles   []float64 `yaml:"percentiles"`
-	count         int
-	tracksCount   bool
+
+	// SampleCount is a pointer to distinguish legacy dumps from new dumps with
+	// zero samples.
+	SampleCount *int `yaml:"sample_count,omitempty"`
 }
 
 func newTimeStats(usePercentile bool) *timeStats {
+	sampleCount := 0
+
 	return &timeStats{
 		UsePercentile: usePercentile,
 		Percentiles:   make([]float64, 0),
-		tracksCount:   true,
+		SampleCount:   &sampleCount,
 	}
 }
 
 func (ts *timeStats) Set(val float64) {
-	ts.count++
+	if ts.SampleCount == nil {
+		sampleCount := 0
+		ts.SampleCount = &sampleCount
+	}
+	(*ts.SampleCount)++
 
 	if ts.Max < val {
 		ts.Max = val
 	}
 
-	if ts.count == 1 || ts.Min > val {
+	if *ts.SampleCount == 1 || ts.Min > val {
 		ts.Min = val
 	}
 
@@ -605,8 +613,8 @@ func (ts *timeStats) Sort() {
 }
 
 func (ts *timeStats) sampleCount(fallback int) int {
-	if ts.tracksCount {
-		return ts.count
+	if ts.SampleCount != nil {
+		return *ts.SampleCount
 	}
 
 	return fallback
@@ -618,26 +626,34 @@ type numberStats struct {
 	Sum           uint64 `yaml:"sum"`
 	UsePercentile bool
 	Percentiles   []uint64 `yaml:"percentiles"`
-	count         int
-	tracksCount   bool
+
+	// SampleCount is a pointer to distinguish legacy dumps from new dumps with
+	// zero samples.
+	SampleCount *int `yaml:"sample_count,omitempty"`
 }
 
 func newNumberStats(usePercentile bool) *numberStats {
+	sampleCount := 0
+
 	return &numberStats{
 		UsePercentile: usePercentile,
 		Percentiles:   make([]uint64, 0),
-		tracksCount:   true,
+		SampleCount:   &sampleCount,
 	}
 }
 
 func (ns *numberStats) Set(val uint64) {
-	ns.count++
+	if ns.SampleCount == nil {
+		sampleCount := 0
+		ns.SampleCount = &sampleCount
+	}
+	(*ns.SampleCount)++
 
 	if ns.Max < val {
 		ns.Max = val
 	}
 
-	if ns.count == 1 || ns.Min > val {
+	if *ns.SampleCount == 1 || ns.Min > val {
 		ns.Min = val
 	}
 
@@ -694,8 +710,8 @@ func (ns *numberStats) Sort() {
 }
 
 func (ns *numberStats) sampleCount(fallback int) int {
-	if ns.tracksCount {
-		return ns.count
+	if ns.SampleCount != nil {
+		return *ns.SampleCount
 	}
 
 	return fallback
