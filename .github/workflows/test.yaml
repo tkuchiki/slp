@@ -17,3 +17,22 @@ jobs:
           go-version-file: go.mod
       - name: Test
         run: go test -v ./...
+
+  build_windows:
+    name: Build Windows binary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build
+        uses: crazy-max/ghaction-xgo@v4
+        with:
+          xgo_version: latest
+          # xgo does not publish a Go 1.27 image yet. Go 1.26.5 bootstraps the
+          # Go 1.27.1 toolchain selected by go.mod for the actual build.
+          go_version: 1.26.5
+          dest: build
+          prefix: slp
+          pkg: ./cmd/slp/
+          targets: windows/amd64
+          ldflags: -s -w
+          trimpath: true

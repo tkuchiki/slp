@@ -9,7 +9,7 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/percona/go-mysql v0.0.0-20210427141028-73d29c6da78c
-	github.com/pganalyze/pg_query_go/v4 v4.2.3
+	github.com/pganalyze/pg_query_go/v6 v6.2.2
 	github.com/pingcap/tidb/parser v0.0.0-20231013125129-93a834a6bf8d
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.17.0
@@ -21,7 +21,6 @@ require (
 require (
 	github.com/cznic/mathutil v0.0.0-20181122101859-297441e03548 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
-	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
