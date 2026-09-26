@@ -1,8 +1,8 @@
 module github.com/tkuchiki/slp
 
-go 1.26
+go 1.27
 
-toolchain go1.26.0
+toolchain go1.27.1
 
 require (
 	github.com/antonmedv/expr v1.9.0

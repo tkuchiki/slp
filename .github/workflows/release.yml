@@ -4,19 +4,24 @@ on:
     tags:
     - "v[0-9]+.[0-9]+.[0-9]+"
 
+permissions:
+  contents: write
+
 jobs:
   build_and_release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
-          fetch-depth: 1
+          fetch-depth: 0
       - name: Build
-        uses: crazy-max/ghaction-xgo@v3
+        uses: crazy-max/ghaction-xgo@v4
         with:
           xgo_version: latest
-          go_version: 1.26
+          # xgo does not publish a Go 1.27 image yet. Go 1.26.5 bootstraps the
+          # Go 1.27.1 toolchain selected by go.mod for the actual build.
+          go_version: 1.26.5
           dest: build
           prefix: slp
           pkg: ./cmd/slp/
@@ -32,10 +37,10 @@ jobs:
         run: |
           bash ./scripts/ci/archive.sh "${GITHUB_REF#refs/*/}"
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v4
+        uses: goreleaser/goreleaser-action@v7
         with:
           distribution: goreleaser
-          version: latest
+          version: '~> v2'
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
