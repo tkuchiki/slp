@@ -18,8 +18,8 @@ jobs:
       - name: Test
         run: go test -v ./...
 
-  build_windows:
-    name: Build Windows binary
+  build_release_binaries:
+    name: Build release binaries
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -33,6 +33,6 @@ jobs:
           dest: build
           prefix: slp
           pkg: ./cmd/slp/
-          targets: windows/amd64
+          targets: windows/amd64,windows/arm64,linux/amd64,linux/arm64,linux/mips64,linux/mips64le,darwin/amd64,darwin/arm64,freebsd/amd64,freebsd/arm64,netbsd/amd64,netbsd/arm64,openbsd/amd64,openbsd/arm64,solaris/amd64,solaris/arm64,
           ldflags: -s -w
           trimpath: true
