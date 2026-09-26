@@ -10,6 +10,12 @@ This tool is similar to [mysqldumpslow](https://dev.mysql.com/doc/refman/8.0/en/
 
 Download from https://github.com/tkuchiki/slp/releases
 
+Alternatively, install the latest version with Go:
+
+```bash
+go install github.com/tkuchiki/slp@latest
+```
+
 ## Usage
 
 ```console

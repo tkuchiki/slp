@@ -8,6 +8,12 @@ slp は MySQL/PostgreSQL の slowlog 解析ツールです。
 
 https://github.com/tkuchiki/slp/releases から binary をダウンロードして配置してください。
 
+または、Go で最新バージョンをインストールできます。
+
+```bash
+go install github.com/tkuchiki/slp@latest
+```
+
 # 使い方
 
 ```console
