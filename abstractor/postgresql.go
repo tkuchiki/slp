@@ -3,7 +3,7 @@ package abstractor
 import (
 	"strings"
 
-	pgquery "github.com/pganalyze/pg_query_go/v4"
+	pgquery "github.com/pganalyze/pg_query_go/v6"
 )
 
 type PGAbstractor struct {

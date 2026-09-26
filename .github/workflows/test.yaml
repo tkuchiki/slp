@@ -17,3 +17,22 @@ jobs:
           go-version-file: go.mod
       - name: Test
         run: go test -v ./...
+
+  build_release_binaries:
+    name: Build release binaries
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build
+        uses: crazy-max/ghaction-xgo@v4
+        with:
+          xgo_version: latest
+          # xgo does not publish a Go 1.27 image yet. Go 1.26.5 bootstraps the
+          # Go 1.27.1 toolchain selected by go.mod for the actual build.
+          go_version: 1.26.5
+          dest: build
+          prefix: slp
+          pkg: ./cmd/slp/
+          targets: windows/amd64,windows/arm64,linux/amd64,linux/arm64,linux/mips64,linux/mips64le,darwin/amd64,darwin/arm64,freebsd/amd64,freebsd/arm64,netbsd/amd64,netbsd/arm64,openbsd/amd64,openbsd/arm64,solaris/amd64,solaris/arm64,
+          ldflags: -s -w
+          trimpath: true
